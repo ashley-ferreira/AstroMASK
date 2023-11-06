@@ -15,6 +15,10 @@ import numpy as np
 import os
 import time
 from pathlib import Path
+import sys
+sys.path.append('/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/dataloaders/')
+import dataloaders
+import wandb
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -24,22 +28,23 @@ import torchvision.datasets as datasets
 
 import timm
 
-assert timm.__version__ == "0.3.2"  # version check
+#assert timm.__version__ == "0.3.2"  # version check
 import timm.optim.optim_factory as optim_factory
 
 import util.misc as misc
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
+from torch.utils.data import SubsetRandomSampler
 
 import models_mae
 
 from engine_pretrain import train_one_epoch
-
-
+# RUN THIS DIRECTLY IF NOT DOING JOBS
+# fix things like warmup epochs
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE pre-training', add_help=False)
-    parser.add_argument('--batch_size', default=64, type=int,
+    parser.add_argument('--batch_size', default=1024, type=int, # max it can handle, ideally we want to increase this
                         help='Batch size per GPU (effective batch size is batch_size * accum_iter * # gpus')
-    parser.add_argument('--epochs', default=400, type=int)
+    parser.add_argument('--epochs', default=100, type=int)
     parser.add_argument('--accum_iter', default=1, type=int,
                         help='Accumulate gradient iterations (for increasing the effective batch size under memory constraints)')
 
@@ -47,15 +52,15 @@ def get_args_parser():
     parser.add_argument('--model', default='mae_vit_large_patch16', type=str, metavar='MODEL',
                         help='Name of model to train')
 
-    parser.add_argument('--input_size', default=224, type=int,
+    parser.add_argument('--input_size', default=64, type=int,
                         help='images input size')
 
-    parser.add_argument('--mask_ratio', default=0.75, type=float,
+    parser.add_argument('--mask_ratio', default=0.75,type=float,
                         help='Masking ratio (percentage of removed patches).')
 
-    parser.add_argument('--norm_pix_loss', action='store_true',
+    parser.add_argument('--norm_pix_loss', action='store_true', 
                         help='Use (per-patch) normalized pixels as targets for computing loss')
-    parser.set_defaults(norm_pix_loss=False)
+    parser.set_defaults(norm_pix_loss=True)
 
     # Optimizer parameters
     parser.add_argument('--weight_decay', type=float, default=0.05,
@@ -63,16 +68,16 @@ def get_args_parser():
 
     parser.add_argument('--lr', type=float, default=None, metavar='LR',
                         help='learning rate (absolute lr)')
-    parser.add_argument('--blr', type=float, default=1e-3, metavar='LR',
+    parser.add_argument('--blr', type=float, default=1e-5, metavar='LR',
                         help='base learning rate: absolute_lr = base_lr * total_batch_size / 256')
     parser.add_argument('--min_lr', type=float, default=0., metavar='LR',
                         help='lower lr bound for cyclic schedulers that hit 0')
 
-    parser.add_argument('--warmup_epochs', type=int, default=40, metavar='N',
+    parser.add_argument('--warmup_epochs', type=int, default=2, metavar='N',
                         help='epochs to warmup LR')
 
     # Dataset parameters
-    parser.add_argument('--data_path', default='/datasets01/imagenet_full_size/061417/', type=str,
+    parser.add_argument('--data_path', default='/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/valid2/', type=str,
                         help='dataset path')
 
     parser.add_argument('--output_dir', default='./output_dir',
@@ -105,6 +110,8 @@ def get_args_parser():
 
 
 def main(args):
+    print('main_pretrain.main')
+    # doesn't ever get here?
     misc.init_distributed_mode(args)
 
     print('job dir: {}'.format(os.path.dirname(os.path.realpath(__file__))))
@@ -121,13 +128,12 @@ def main(args):
 
     # simple augmentation
     transform_train = transforms.Compose([
-            transforms.RandomResizedCrop(args.input_size, scale=(0.2, 1.0), interpolation=3),  # 3 is bicubic
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
-    dataset_train = datasets.ImageFolder(os.path.join(args.data_path, 'train'), transform=transform_train)
-    print(dataset_train)
-
+            #transforms.RandomResizedCrop(args.input_size, scale=(0.2, 1.0), interpolation=3),  # 3 is bicubic
+            #transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),])
+            #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    #dataset_train = datasets.ImageFolder(os.path.join(args.data_path, 'train'), transform=transform_train)
+    '''
     if True:  # args.distributed:
         num_tasks = misc.get_world_size()
         global_rank = misc.get_rank()
@@ -151,6 +157,44 @@ def main(args):
         pin_memory=args.pin_mem,
         drop_last=True,
     )
+    '''    
+    n_cutouts_train = 5*10000
+    n_cutouts_test = 10000
+    
+    # not using this random shuffle + validation set, will add in future
+    dataset_indices = list(range(n_cutouts_train))
+    np.random.shuffle(dataset_indices)
+    frac = 0.3 # decrease when we have more data
+    val_split_index = int(np.floor(frac * n_cutouts_train))
+    train_idx, val_idx = dataset_indices[val_split_index:], dataset_indices[:val_split_index]
+
+    train_sampler = SubsetRandomSampler(train_idx)
+    val_sampler = SubsetRandomSampler(val_idx) 
+    
+    kwargs_train = {
+        'n_cutouts': n_cutouts_train,
+        'bands': ['u', 'g', 'r', 'i', 'z'],
+        'cutout_size': args.input_size,
+        'batch_size': args.batch_size, 
+        'cutouts_per_file': 10000,
+        'sampler': None,
+        'h5_directory': '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/valid2/'
+    }
+    
+    kwargs_test = {
+        'n_cutouts': n_cutouts_test,
+        'bands': ['u', 'g', 'r', 'i', 'z'],
+        'cutout_size': args.input_size,
+        'batch_size': args.batch_size, 
+        'cutouts_per_file': 10000,
+        'sampler': None,
+        'h5_directory': '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/val/'
+    }
+    # still yet to do, smarter batching, shuffling, valid set etc. 
+    data_loader_train = dataloaders.SpencerHDF5ReaderDataset(**kwargs_train)
+    data_loader_test = dataloaders.SpencerHDF5ReaderDataset(**kwargs_test) # using test as validation temporarily for now
+    
+    log_writer = None
     
     # define the model
     model = models_mae.__dict__[args.model](norm_pix_loss=args.norm_pix_loss)
@@ -183,14 +227,20 @@ def main(args):
 
     misc.load_model(args=args, model_without_ddp=model_without_ddp, optimizer=optimizer, loss_scaler=loss_scaler)
 
+    # Set the project where this run will be logged
+    run = wandb.init(
+    entity="astro-ssl",
+    project="fb-mae",
+    )
+    
     print(f"Start training for {args.epochs} epochs")
+    
     start_time = time.time()
     for epoch in range(args.start_epoch, args.epochs):
-        if args.distributed:
-            data_loader_train.sampler.set_epoch(epoch)
-        train_stats = train_one_epoch(
-            model, data_loader_train,
-            optimizer, device, epoch, loss_scaler,
+        
+        train_stats = train_one_epoch( # make this a class in future?
+            model, data_loader_train, data_loader_test, optimizer, train_sampler, val_sampler, 
+            device, epoch, loss_scaler,
             log_writer=log_writer,
             args=args
         )

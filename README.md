@@ -1,3 +1,18 @@
+## Ashley's Fork of Masked Autoencoders
+Applying MAE to Astronomy data. Required dataloader from (dark3d repo)[https://github.com/astroai/dark3d].
+
+For now, to run this, replace the paths to reflect your file system and directly call 
+```
+python main_pretrain.py
+```
+
+### To-Do
+
+- [] Random shuffle data and grab validation subset
+- [] Decide on normalization
+- [] Decide on what level of precision is needed (float64?)
+
+
 ## Masked Autoencoders: A PyTorch Implementation
 
 <p align="center">
