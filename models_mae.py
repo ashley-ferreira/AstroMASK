@@ -15,6 +15,7 @@ import torch
 import torch.nn as nn
 from timm.models.vision_transformer import PatchEmbed, Block
 from util.pos_embed import get_2d_sincos_pos_embed
+import util.cutout_scaling as sc
 
 class MaskedAutoencoderViT(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
@@ -207,7 +208,7 @@ class MaskedAutoencoderViT(nn.Module):
 
         print(f'norm_pix_loss is {self.norm_pix_loss} but is being forced to False')
         self.norm_pix_loss = False
-        
+
         if self.norm_pix_loss:
             mean = target.mean(dim=-1, keepdim=True)
             var = target.var(dim=-1, keepdim=True)
@@ -221,9 +222,13 @@ class MaskedAutoencoderViT(nn.Module):
             loss = torch.abs(pred - target)
 
         # DO SPECIFIC LOSS STUFF HERE
-        unnormaed_pred = 
-        unnormed_target = 
-        unnormed_loss = (unnormed_pred - unnormed_target) ** 2
+        unnormed_pred = sc.inv_normalize(pred, self.norm_args)
+        unnormed_target = sc.inv_normalize(target, self.norm_args)
+
+        if loss_method == 'square':
+            unnormed_loss = (unnormed_pred - unnormed_target) ** 2
+        elif loss_method == 'abs': 
+            unnormed_loss = torch.abs(unnormed_pred - unnormed_target)
 
         loss = loss.mean(dim=-1)  # [N, L], mean loss per patch
         loss = (loss * mask).sum() / mask.sum()  # mean loss on removed patches
@@ -235,23 +240,13 @@ class MaskedAutoencoderViT(nn.Module):
         return loss, unnormed_loss
 
     def forward(self, imgs, mask_ratio=0.75):
+
+        # need to add in norm here since this class is where loss is calculated
+        imgs, args = sc.normalize(imgs, self.norm_method)
+        self.norm_args = args
+
         latent, mask, ids_restore = self.forward_encoder(imgs, mask_ratio)
         pred = self.forward_decoder(latent, ids_restore)  # [N, L, p*p*3]
-        
-        '''
-        if norm_method == 'min_max':
-            for i in range(len(pred)):
-                pred[i] = prep_data.inv_min_max(pred[i], norm_method_args[i])#['min_overall'], norm_method_args[i]['max_overall'])
-                imgs[i] = prep_data.inv_min_max(imgs[i], norm_method_args[i])#['min_overall'], norm_method_args[i]['max_overall'])
-                
-            print('model outputs #############')
-            print('pred')
-            print(pred[0]) 
-            print('imgs')
-            print(imgs[0]) 
-            print('norm_method_args')
-            print(norm_method_args[0])
-        '''
         
         loss, unnormed_loss = self.forward_loss(imgs, pred, mask) 
         return loss, unnormed_loss, pred, mask 
