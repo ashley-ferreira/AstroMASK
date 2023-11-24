@@ -22,8 +22,8 @@ class MaskedAutoencoderViT(nn.Module):
     def __init__(self, img_size=64, patch_size=16, in_chans=5,
                  embed_dim=1024, depth=24, num_heads=16,
                  decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
-                 mlp_ratio=4., norm_layer=nn.LayerNorm, norm_pix_loss=True): 
-        # norm_pix_loss is not responsive to one in main_pretrain.py, but pixels may already be normalized?
+                 mlp_ratio=4., norm_layer=nn.LayerNorm, norm_pix_loss=True,
+                 norm_method=None, norm_args=None): 
         super().__init__()
 
         # --------------------------------------------------------------------------
@@ -60,6 +60,9 @@ class MaskedAutoencoderViT(nn.Module):
         self.in_chans = in_chans
 
         self.initialize_weights()
+
+        self.norm_method = norm_method
+        self.norm_args = norm_args
 
     def initialize_weights(self):
         # initialization
@@ -194,45 +197,64 @@ class MaskedAutoencoderViT(nn.Module):
 
         return x
 
-    def forward_loss(self, imgs, pred, mask):
+    def forward_loss(self, imgs, pred, mask, loss_method='square'):
         """
         imgs: [N, 3, H, W]
         pred: [N, L, p*p*3]
         mask: [N, L], 0 is keep, 1 is remove, 
         """
         target = self.patchify(imgs)
-        print(self.norm_pix_loss)
+
+        print(f'norm_pix_loss is {self.norm_pix_loss} but is being forced to False')
         self.norm_pix_loss = False
+        
         if self.norm_pix_loss:
             mean = target.mean(dim=-1, keepdim=True)
             var = target.var(dim=-1, keepdim=True)
             target = (target - mean) / (var + 1.e-6)**.5
             
-        # short-cut for now, will replace long-term
-        #pred[pred != pred] = 0
+        # short-cut for now, ideally will replace long-term
         pred[torch.isnan(pred)] = 0
+        if loss_method == 'square':
+            loss = (pred - target) ** 2
+        elif loss_method == 'abs': 
+            loss = torch.abs(pred - target)
 
-        #print('pred', pred)
-        print(torch.isnan(pred).any(), torch.isinf(pred).any()) # is nan in pred 
-        #print('target', target)
-        #print(torch.isnan(target).any(), torch.isinf(target).any()) # all good
-        loss = (pred - target) ** 2
+        # DO SPECIFIC LOSS STUFF HERE
+        unnormaed_pred = 
+        unnormed_target = 
+        unnormed_loss = (unnormed_pred - unnormed_target) ** 2
+
         loss = loss.mean(dim=-1)  # [N, L], mean loss per patch
         loss = (loss * mask).sum() / mask.sum()  # mean loss on removed patches
-        #print('mask', mask)
-        #print(torch.isnan(mask).any(), torch.isinf(mask).any()) # all good
-        #print(mask.sum()) # non-zero
+ 
         if not math.isfinite(loss):
             print("Loss is {}, setting to 100 for now".format(loss))
-            loss = torch.tensor(100, dtype=torch.float64, device=loss.device) #torch.ones(mask.shape[0], self.in_chans)*100
+            loss = torch.tensor(100, dtype=torch.float64, device=loss.device) 
         
-        return loss
+        return loss, unnormed_loss
 
     def forward(self, imgs, mask_ratio=0.75):
         latent, mask, ids_restore = self.forward_encoder(imgs, mask_ratio)
         pred = self.forward_decoder(latent, ids_restore)  # [N, L, p*p*3]
-        loss = self.forward_loss(imgs, pred, mask)
-        return loss, pred, mask
+        
+        '''
+        if norm_method == 'min_max':
+            for i in range(len(pred)):
+                pred[i] = prep_data.inv_min_max(pred[i], norm_method_args[i])#['min_overall'], norm_method_args[i]['max_overall'])
+                imgs[i] = prep_data.inv_min_max(imgs[i], norm_method_args[i])#['min_overall'], norm_method_args[i]['max_overall'])
+                
+            print('model outputs #############')
+            print('pred')
+            print(pred[0]) 
+            print('imgs')
+            print(imgs[0]) 
+            print('norm_method_args')
+            print(norm_method_args[0])
+        '''
+        
+        loss, unnormed_loss = self.forward_loss(imgs, pred, mask) 
+        return loss, unnormed_loss, pred, mask 
 
 
 def mae_vit_base_patch16_dec512d8b(**kwargs):
@@ -242,10 +264,10 @@ def mae_vit_base_patch16_dec512d8b(**kwargs):
         mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
     return model
 
-
-def mae_vit_large_patch16_dec512d8b(**kwargs):
+# CURENT MODEL IN USE - MAY WANT TO LOWER LATENT DIM
+def mae_vit_large_patch16_dec512d8b(**kwargs): 
     model = MaskedAutoencoderViT(
-        patch_size=16, embed_dim=1024, depth=24, num_heads=16,
+        patch_size=8, embed_dim=1024, depth=24, num_heads=16,# 16-> 17?
         decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
         mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
     return model

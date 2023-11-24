@@ -8,7 +8,7 @@ python main_pretrain.py
 
 ### To-Do
 
-- [] Random shuffle data and grab validation subset
+- [x] Random shuffle data and grab validation subset
 - [] Decide on normalization
 - [] Decide on what level of precision is needed (float64?)
 
