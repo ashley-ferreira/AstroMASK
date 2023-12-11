@@ -1,17 +1,30 @@
-## Ashley's Fork of Masked Autoencoders
-Applying MAE to Astronomy data. Required dataloader from (dark3d repo)[https://github.com/astroai/dark3d].
+## Applying Self-Supervised Representation Learning to the  Ultraviolet Near Infrared Optical Northern Survey
 
+**NOTE:** I need to do one more big update to the code to reflect the software used to produce results in my written report. To do this I just need to regain access to CANFAR and that should happen this week.
+
+### About 
+The Ultraviolet Near Infrared Optical Northern Survey (UNIONS) uses observations from three telescopes in Hawaii and aims to answer some of the most fundamental questions in astrophysics such as determining the properties of dark matter and dark energy, as well as the growth of structure in the Universe. However, being able to effectively search through and categorize the data in order to extract these insights can be cumbersome. This project hopes to exploit 
+recent advances in a sub-field of Machine Learning (ML), called Self-Supervised Learning (SSL), including Masked Autoencoders (MAE) with Vision Transformer (ViT) 
+backbones to train a model to produce meaningful lower-dimensional representations of astronomy observations without the need for explicit labels. These models have 
+shown to be effective at performing similarity searches and take far fewer labels to fine-tune for downstream tasks such as strong lens detection. This report will cover the approach in more detail and touch on preliminary results of exploring these lower-dimensional representations.
+
+
+### Pre-requisites
+- dataloader from (dark3d repo)[https://github.com/astroai/dark3d]
+- CADC account 
+- read access to the following path on CADC's CANFAR
+```
+/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5
+```
+
+### Quick Start
 For now, to run this, replace the paths to reflect your file system and directly call 
 ```
 python main_pretrain.py
 ```
 
-### To-Do
 
-- [x] Random shuffle data and grab validation subset
-- [] Decide on normalization
-- [] Decide on what level of precision is needed (float64?)
-
+This code is forked from another repositiory for which information is available below:
 
 ## Masked Autoencoders: A PyTorch Implementation
 
