@@ -1,6 +1,6 @@
-## Applying Self-Supervised Representation Learning to the  Ultraviolet Near Infrared Optical Northern Survey
+## Applying Self-Supervised Representation Learning to the Ultraviolet Near Infrared Optical Northern Survey
 
-**NOTE:** I need to do one more big update to the code to reflect the software used to produce results in my written report. To do this I just need to regain access to CANFAR and that should happen this week.
+**NOTE:** This repository is very much still a work in progress. I plan to upload my mid-project written report but I need to do one more big update to the code to reflect the software used to produce results in my written report. To do this I need to regain access to CANFAR and that should happen this week.
 
 ### About 
 The Ultraviolet Near Infrared Optical Northern Survey (UNIONS) uses observations from three telescopes in Hawaii and aims to answer some of the most fundamental questions in astrophysics such as determining the properties of dark matter and dark energy, as well as the growth of structure in the Universe. However, being able to effectively search through and categorize the data in order to extract these insights can be cumbersome. This project hopes to exploit 
@@ -10,21 +10,55 @@ shown to be effective at performing similarity searches and take far fewer label
 
 
 ### Pre-requisites
-- dataloader from (dark3d repo)[https://github.com/astroai/dark3d]
-- CADC account 
+- read access to the [dark3d repo](https://github.com/astroai/dark3d)
+- a [Weights & Biases](https://docs.wandb.ai/quickstart#:~:text=Create%20an%20account%20and%20install,Python%203%20environment%20using%20pip%20.) account 
+- CADC account
 - read access to the following path on CADC's CANFAR
 ```
 /arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5
 ```
 
 ### Quick Start
-For now, to run this, replace the paths to reflect your file system and directly call 
+1. Follow this link to [CANFAR Science Portal](https://www.canfar.net/science-portal/) and log on to your CADC account
+2. Launch a notebook with container image "skaha/astroml-notebook:latest"
+3. Enter the following in their terminal with your CADC username in the place of YOUR_USERNAME
 ```
+cadc-get-cert -u YOUR_USERNAME
+```
+4. Then run the following to launch a GPU session
+```
+curl -E .ssl/cadcproxy.pem 'https://ws-uv.canfar.net/skaha/v0/session?name=notebookgpu&cores=2&ram=16&gpus=1' -d image="images.canfar.net/skaha/astroml-gpu-notebook:latest"
+```
+5. Now, if you return to the [CANFAR Science Portal](https://www.canfar.net/science-portal/) you should see a new notebook session that has access to a GPU. If it stays greyed out this is likely because all GPUs are currently claimed.
+6. Navigate to the directory you save you want to save code in and clone the following two repositories
+```
+git clone https://github.com/astroai/dark3d.git
+git clone https://github.com/ashley-ferreira/mae.git
+```
+6. You are now ready to train the model! Navigate to the mae directory and run the script that trains the model
+```
+cd mae
 python main_pretrain.py
 ```
+which saves checkpoints in 
+```
+/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/output_dir/DATETIME
+```
+where DATETIME is the time at which the code began running in UTC.
+8. To analyze the outputs of this model, specifically the image reconstructions and the representations through UMAPs, t-SNEs, and similarity search, then run the notebooks found in mae/demo. 
 
+### Acknowledgements
+Many others have contributed to this effort including my supervisors Sebastien Fabbro and Mike Hudson, as well as Spencer Bialek, Nat Comeau, Nick Heesters, and Leonardo Ferreira. 
 
-This code is forked from another repositiory for which information is available below:
+This research used the facilities of the CADC operated by the National Research Council of Canada with the support of the Canadian Space Agency. Without the CADC's CANFAR platform, none of this work would have been possible, the platform was used to host and access the data as well as perform all computational work needed. 
+
+All data used for this project is from UNIONS and so this survey has been instrumental in every aspect of this project.
+
+W\&B experiment tracking software gives free student accounts and that was tremendously helpful to be able to use to debug and keep track of different experiments.
+
+Finally, this work project has heavily relied on open-source software. All the programming was done in Python and made use of its many associated packages including NumPy, Matplotlib, and two key contributions from Meta AI: PyTorch and Faiss. Additionally, this work made use of Astropy a community-developed core Python package and an ecosystem of tools and resources for astronomy.
+
+This code is also forked from another repository for which information is available below:
 
 ## Masked Autoencoders: A PyTorch Implementation
 
