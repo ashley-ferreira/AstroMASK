@@ -1,6 +1,6 @@
 ## Applying Self-Supervised Representation Learning to the Ultraviolet Near Infrared Optical Northern Survey
 
-**NOTE:** This repository is very much still a work in progress. I plan to upload my mid-project written report but I need to do one more big update to the code to reflect the software used to produce results in my written report. To do this I need to regain access to CANFAR and that should happen this week.
+**NOTE:** This repository is very much still a work in progress. I plan to upload my mid-project written report and I need to do one more big update to the code to reflect the software used to produce results in my written report. To do this I need to regain access to CANFAR and that should happen this week.
 
 ### About 
 The Ultraviolet Near Infrared Optical Northern Survey (UNIONS) uses observations from three telescopes in Hawaii and aims to answer some of the most fundamental questions in astrophysics such as determining the properties of dark matter and dark energy, as well as the growth of structure in the Universe. However, being able to effectively search through and categorize the data in order to extract these insights can be cumbersome. This project hopes to exploit 
@@ -8,6 +8,10 @@ recent advances in a sub-field of Machine Learning (ML), called Self-Supervised 
 backbones to train a model to produce meaningful lower-dimensional representations of astronomy observations without the need for explicit labels. These models have 
 shown to be effective at performing similarity searches and take far fewer labels to fine-tune for downstream tasks such as strong lens detection. This report will cover the approach in more detail and touch on preliminary results of exploring these lower-dimensional representations.
 
+### Presentations
+[machine learning jamboree slides from November 2023](https://docs.google.com/presentation/d/1yKvwjkmD0P0Yg99_3wGNmzTLRaY1v0lIrQrFEd7BDQQ/edit?usp=sharing)
+
+[PHYS 437A mid-term presentation from October 2023](https://docs.google.com/presentation/d/1SYtv5tDFlD92CpKsPnbQ_WaoMLi82DHT/edit?usp=sharing&ouid=111358555577518196339&rtpof=true&sd=true)
 
 ### Pre-requisites
 - read access to the [dark3d repo](https://github.com/astroai/dark3d)
@@ -53,6 +57,15 @@ Many others have contributed to this effort including my supervisors Sebastien F
 This research used the facilities of the CADC operated by the National Research Council of Canada with the support of the Canadian Space Agency. Without the CADC's CANFAR platform, none of this work would have been possible, the platform was used to host and access the data as well as perform all computational work needed. 
 
 All data used for this project is from UNIONS and so this survey has been instrumental in every aspect of this project.
+
+### Built With
+
+So far, this project is entirely developped in Python using a mix of scripts (.py) and notebooks (.ipynb) and uses numerous python packages. 
+
+[![Python][python]][python-url]
+[![Notebook][notebook]][notebook-url] 
+[![PyTorch][pytorch]][pytorch-url]
+[![WandB][wandb]][wandb-url] 
 
 W\&B experiment tracking software gives free student accounts and that was tremendously helpful to be able to use to debug and keep track of different experiments.
 
@@ -216,3 +229,19 @@ The pre-training instruction is in [PRETRAIN.md](PRETRAIN.md).
 ### License
 
 This project is under the CC-BY-NC 4.0 license. See [LICENSE](LICENSE) for details.
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
+[python]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
+[python-url]: https://www.python.org/
+
+[notebook]: https://img.shields.io/badge/Made%20with-Jupyter-orange?style=for-the-badge&logo=Jupyter
+[notebook-url]: https://jupyter.org/
+
+[wandb]: https://img.shields.io/badge/Weights_&_Biases-FFBE00?style=for-the-badge&logo=WeightsAndBiases&logoColor=white
+[wandb-url]: https://wandb.ai/site
+
+[pytorch]: https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white
+[pytorch-url]: https://pytorch.org/
