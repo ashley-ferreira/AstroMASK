@@ -9,9 +9,9 @@ backbones to train a model to produce meaningful lower-dimensional representatio
 shown to be effective at performing similarity searches and take far fewer labels to fine-tune for downstream tasks such as strong lens detection. This report will cover the approach in more detail and touch on preliminary results of exploring these lower-dimensional representations.
 
 ### Presentations
-[machine learning jamboree slides from November 2023](https://docs.google.com/presentation/d/1yKvwjkmD0P0Yg99_3wGNmzTLRaY1v0lIrQrFEd7BDQQ/edit?usp=sharing)
+[machine learning jamboree slides](https://docs.google.com/presentation/d/1yKvwjkmD0P0Yg99_3wGNmzTLRaY1v0lIrQrFEd7BDQQ/edit?usp=sharing) from November 2023
 
-[PHYS 437A mid-term presentation from October 2023](https://docs.google.com/presentation/d/1SYtv5tDFlD92CpKsPnbQ_WaoMLi82DHT/edit?usp=sharing&ouid=111358555577518196339&rtpof=true&sd=true)
+[PHYS 437A mid-term presentation](https://docs.google.com/presentation/d/1SYtv5tDFlD92CpKsPnbQ_WaoMLi82DHT/edit?usp=sharing&ouid=111358555577518196339&rtpof=true&sd=true) from October 2023
 
 ### Pre-requisites
 - read access to the [dark3d repo](https://github.com/astroai/dark3d)
@@ -59,8 +59,6 @@ This research used the facilities of the CADC operated by the National Research 
 All data used for this project is from UNIONS and so this survey has been instrumental in every aspect of this project.
 
 ### Built With
-
-So far, this project is entirely developped in Python using a mix of scripts (.py) and notebooks (.ipynb) and uses numerous python packages. 
 
 [![Python][python]][python-url]
 [![Notebook][notebook]][notebook-url] 
