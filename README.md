@@ -1,4 +1,6 @@
-## Applying Self-Supervised Representation Learning to the Ultraviolet Near Infrared Optical Northern Survey
+## AstroMASK: Astronomy Masked Autoencoder Self-supervised Knowledge
+
+#### Applying Self-Supervised Representation Learning to the Ultraviolet Near Infrared Optical Northern Survey
 
 **NOTE:** This repository is very much still a work in progress. I plan to upload my mid-project written report and I need to do one more big update to the code to reflect the software used to produce results in my written report. To do this I need to regain access to CANFAR and that should happen this week.
 
