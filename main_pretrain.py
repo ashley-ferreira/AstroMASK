@@ -8,51 +8,44 @@
 # DeiT: https://github.com/facebookresearch/deit
 # BEiT: https://github.com/microsoft/unilm/tree/master/beit
 # --------------------------------------------------------
+
+# TRY TO MAKE THIS RELATIVE? FOR USE ON CANFAR AND CC
+dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/dataloaders/'
+data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/valid2/'
+n_cutouts = 5*10000
+norm_method = 'min_max' 
+patch_size = 8
+
 import argparse
 import datetime
 import json
-import numpy as np
 import os
-import time
+import numpy as np
 from pathlib import Path
-import sys
-sys.path.append('/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/dataloaders/')
-import dataloaders
-import wandb
-
-import torch
-import torch.backends.cudnn as cudnn
-from torch.utils.tensorboard import SummaryWriter
-import torchvision.transforms as transforms
-import torchvision.datasets as datasets
-import timm
-
-#assert timm.__version__ == "0.3.2"  # version check
-import timm.optim.optim_factory as optim_factory
-
-import util.misc as misc
-from util.misc import NativeScalerWithGradNormCount as NativeScaler
-from torch.utils.data import SubsetRandomSampler
-
-import models_mae
-
-from engine_pretrain import train_one_epoch
-from torch.utils.data import DataLoader, Dataset, SubsetRandomSampler
-
-# move these into args if using long term
-data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
-norm_method = None 
-norm_args = None
+import time
 date_time = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 
-# RUN THIS DIRECTLY IF NOT DOING JOBS
-# fix things like warmup epochs
+import sys
+sys.path.append(dataloader_path)
+import dataloaders
+
+import wandb
+import torch
+import torch.backends.cudnn as cudnn
+from torch.utils.data import DataLoader, SubsetRandomSampler
+import timm.optim.optim_factory as optim_factory
+
+import models_mae
+import util.misc as misc
+from util.misc import NativeScalerWithGradNormCount as NativeScaler
+from engine_pretrain import train_one_epoch
+
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE pre-training', add_help=False)
-    parser.add_argument('--batch_size', default=64, type=int, # max it can handle, ideally we want to increase this
+    parser.add_argument('--batch_size', default=16, type=int, 
                         help='Batch size per GPU (effective batch size is batch_size * accum_iter * # gpus')
-    parser.add_argument('--epochs', default=10, type=int)
-    parser.add_argument('--accum_iter', default=1, type=int,
+    parser.add_argument('--epochs', default=500, type=int)
+    parser.add_argument('--accum_iter', default=4, type=int,
                         help='Accumulate gradient iterations (for increasing the effective batch size under memory constraints)')
 
     # Model parameters
@@ -62,7 +55,7 @@ def get_args_parser():
     parser.add_argument('--input_size', default=64, type=int,
                         help='images input size')
 
-    parser.add_argument('--mask_ratio', default=0.75,type=float,
+    parser.add_argument('--mask_ratio', default=0.5,type=float,
                         help='Masking ratio (percentage of removed patches).')
 
     parser.add_argument('--norm_pix_loss', action='store_true', 
@@ -80,7 +73,7 @@ def get_args_parser():
     parser.add_argument('--min_lr', type=float, default=0., metavar='LR',
                         help='lower lr bound for cyclic schedulers that hit 0')
 
-    parser.add_argument('--warmup_epochs', type=int, default=2, metavar='N',
+    parser.add_argument('--warmup_epochs', type=int, default=20, metavar='N',
                         help='epochs to warmup LR')
 
     # Dataset parameters
@@ -95,14 +88,14 @@ def get_args_parser():
                         help='device to use for training / testing')
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--resume', default='',
-                        help='resume from checkpoint')
+                        help='resume from checkpoint') 
 
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
                         help='start epoch')
     
-    # sometimes thisdoes not work for >0, error is: ERROR: Unexpected bus error 
-    # encountered in worker. This might be caused by insufficient shared memory (shm).
-    parser.add_argument('--num_workers', default=4, type=int) 
+    # sometimes this does not work for >0, error is: "ERROR: Unexpected bus error 
+    # encountered in worker. This might be caused by insufficient shared memory (shm).""
+    parser.add_argument('--num_workers', default=3, type=int) 
 
     parser.add_argument('--pin_mem', action='store_true',
                         help='Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.')
@@ -137,71 +130,46 @@ def main(args):
 
     cudnn.benchmark = True
 
+    # currently doing my own center-crop and normalization
     #train_transforms = transforms.Compose([
             #transforms.CenterCrop(args.input_size), 
             #prep_data.Normalize(method='None'), <-- only add once we have settled on one
             #transforms.RandomResizedCrop(args.input_size, scale=(0.2, 1.0), interpolation=3),  # 3 is bicubic
             #transforms.RandomHorizontalFlip(),
-    #       transforms.ToTensor(),])
-    
-    '''
-    if True:  # args.distributed:
-        num_tasks = misc.get_world_size()
-        global_rank = misc.get_rank()
-        sampler_train = torch.utils.data.DistributedSampler(
-            dataset_train, num_replicas=num_tasks, rank=global_rank, shuffle=True
-        )
-        print("Sampler_train = %s" % str(sampler_train))
-    else:
-        sampler_train = torch.utils.data.RandomSampler(dataset_train)
+           #transforms.ToTensor(),]) 
 
-    if global_rank == 0 and args.log_dir is not None:
-        os.makedirs(args.log_dir, exist_ok=True)
-        log_writer = SummaryWriter(log_dir=args.log_dir)
-    else:
-        log_writer = None
-
-    data_loader_train = torch.utils.data.DataLoader(
-        dataset_train, sampler=sampler_train,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
-        pin_memory=args.pin_mem,
-        drop_last=True,
-    )
-    '''    
-    n_cutouts_train = 5*10000
-    
-    dataset_indices = list(range(n_cutouts_train))
+    # split up the dataset in dataset_path into train and validation
+    dataset_indices = list(range(n_cutouts))
     np.random.shuffle(dataset_indices)
     frac = 0.3 # decrease when we have more data
-    val_split_index = int(np.floor(frac * n_cutouts_train))
+    val_split_index = int(np.floor(frac * n_cutouts))
     train_idx, val_idx = dataset_indices[val_split_index:], dataset_indices[:val_split_index]
 
     train_sampler = SubsetRandomSampler(train_idx)
     val_sampler = SubsetRandomSampler(val_idx) 
     
+    # define keywords for dataset
     kwargs_train = {
-        'n_cutouts': n_cutouts_train,
+        'n_cutouts': n_cutouts,
         'bands': ['u', 'g', 'r', 'i', 'z'],
         'cutout_size': args.input_size,
-        'batch_size': args.batch_size, 
         'cutouts_per_file': 10000,
-        'sampler': None,
-        'normalize': norm_method,
-        'h5_directory': f'{data_path}/valid2/'
+        'h5_directory': data_path
     }
     
+    # define fataset and dataloaders
     train_dataset = dataloaders.SpencerHDF5ReaderDataset(**kwargs_train)
     train_loader = DataLoader(dataset=train_dataset, shuffle=False, batch_size=args.batch_size, sampler=train_sampler, num_workers=args.num_workers)
     val_loader = DataLoader(dataset=train_dataset, shuffle=False, batch_size=args.batch_size, sampler=val_sampler, num_workers=args.num_workers)
 
+    print('workers:', args.num_workers)
     log_writer = None
     
     # define the model
-    model = models_mae.__dict__[args.model](norm_pix_loss=args.norm_pix_loss, norm_method=norm_method, norm_args=norm_args)
+    model = models_mae.__dict__[args.model](norm_pix_loss=args.norm_pix_loss, norm_method=norm_method, patch_size=patch_size)
     model.to(device)
 
-    model_without_ddp = model # so its just the same thing?
+    model_without_ddp = model 
     print("Model = %s" % str(model_without_ddp))
 
     eff_batch_size = args.batch_size * args.accum_iter * misc.get_world_size()
@@ -229,33 +197,34 @@ def main(args):
 
     # Set the project where this run will be logged
     run = wandb.init(
-    entity="astro-ssl",
-    project="fb-mae",
-    config={
-        "base_lr": args.blr,
-        "batch_size": args.batch_size,
-        "mask_ratio": args.mask_ratio,
-        "norm_pix_loss": args.norm_pix_loss,
-        "model": args.model,
-        "norm_method": norm_method,
-        "checkpoint_loc": args.output_dir,
-        "note": ""
-    })
+            entity="astro-ssl",
+            project="fb-mae",
+            config={
+                "base_lr": args.blr,
+                "batch_size": args.batch_size,
+                "mask_ratio": args.mask_ratio,
+                "norm_pix_loss": args.norm_pix_loss,
+                "model": args.model,
+                "norm_method": norm_method,
+                "checkpoint_loc": args.output_dir,
+                "note": "",
+                "data_path": data_path,
+                "norm_method": norm_method,
+                "patch_size": patch_size 
+            })
     
     print(f"Start training for {args.epochs} epochs")
     
     start_time = time.time()
     for epoch in range(args.start_epoch, args.epochs):
         
-        train_stats = train_one_epoch( # make this a class in future?
-            model, train_loader, val_loader, norm_method, optimizer,
-            device, epoch, loss_scaler,
-            log_writer=log_writer, args=args
-        )
-        if args.output_dir:## and (epoch % 20 == 0 or epoch + 1 == args.epochs):
-            misc.save_model(
-                args=args, model=model, model_without_ddp=model_without_ddp, optimizer=optimizer,
-                loss_scaler=loss_scaler, epoch=epoch)
+        train_stats = train_one_epoch(model, train_loader, val_loader, optimizer, 
+                                      device, epoch, loss_scaler, log_writer=log_writer, 
+                                      args=args, norm_method=norm_method)
+
+        if args.output_dir:
+            misc.save_model(args=args, model=model, model_without_ddp=model_without_ddp, 
+                            optimizer=optimizer,loss_scaler=loss_scaler, epoch=epoch)
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
                         'epoch': epoch,}

@@ -24,8 +24,9 @@ class MaskedAutoencoderViT(nn.Module):
                  embed_dim=1024, depth=24, num_heads=16,
                  decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
                  mlp_ratio=4., norm_layer=nn.LayerNorm, norm_pix_loss=True,
-                 norm_method=None, norm_args=None): 
+                 norm_method=None): 
         super().__init__()
+        print('using the newer version!!')
 
         # --------------------------------------------------------------------------
         # MAE encoder specifics
@@ -63,7 +64,7 @@ class MaskedAutoencoderViT(nn.Module):
         self.initialize_weights()
 
         self.norm_method = norm_method
-        self.norm_args = norm_args
+        #self.norm_args = norm_args
 
     def initialize_weights(self):
         # initialization
@@ -97,7 +98,7 @@ class MaskedAutoencoderViT(nn.Module):
 
     def patchify(self, imgs):
         """
-        imgs: (N, 3, H, W)
+        imgs: (N, 3, H, W) --> this is not in the correct shape
         x: (N, L, patch_size**2 *3)
         """
         p = self.patch_embed.patch_size[0]
@@ -106,18 +107,18 @@ class MaskedAutoencoderViT(nn.Module):
         h = w = imgs.shape[2] // p
         x = imgs.reshape(shape=(imgs.shape[0], self.in_chans, h, p, w, p))
         x = torch.einsum('nchpwq->nhwpqc', x)
-        x = x.reshape(shape=(imgs.shape[0], h * w, p**2 * self.in_chans)) #?
+        x = x.reshape(shape=(imgs.shape[0], h * w, p**2 * self.in_chans))
         return x
 
     def unpatchify(self, x):
         """
         x: (N, L, patch_size**2 *3)
-        imgs: (N, 3, H, W)
+        imgs: (N, 3, H, W) --> your shape is diff than this torch.Size([64, 64, 64, 5])
+        --> maybe try to have output changed
         """
         p = self.patch_embed.patch_size[0]
         h = w = int(x.shape[1]**.5)
         assert h * w == x.shape[1]
-        
         x = x.reshape(shape=(x.shape[0], h, w, p, p, self.in_chans))
         x = torch.einsum('nhwpqc->nchpwq', x)
         imgs = x.reshape(shape=(x.shape[0], self.in_chans, h * p, h * p))
@@ -152,6 +153,7 @@ class MaskedAutoencoderViT(nn.Module):
 
     def forward_encoder(self, x, mask_ratio):
         # embed patches
+        
         x = self.patch_embed(x)
 
         # add pos embed w/o cls token
@@ -205,8 +207,6 @@ class MaskedAutoencoderViT(nn.Module):
         mask: [N, L], 0 is keep, 1 is remove, 
         """
         target = self.patchify(imgs)
-
-        print(f'norm_pix_loss is {self.norm_pix_loss} but is being forced to False')
         self.norm_pix_loss = False
 
         if self.norm_pix_loss:
@@ -214,24 +214,30 @@ class MaskedAutoencoderViT(nn.Module):
             var = target.var(dim=-1, keepdim=True)
             target = (target - mean) / (var + 1.e-6)**.5
             
-        # short-cut for now, ideally will replace long-term
+        # short-cut for now, ideally will replace long-term once set on a norm method
         pred[torch.isnan(pred)] = 0
         if loss_method == 'square':
-            loss = (pred - target) ** 2
+            loss = (pred - target) ** 2 # default method
         elif loss_method == 'abs': 
-            loss = torch.abs(pred - target)
+            loss = torch.abs(pred - target) # linear with normalization
 
-        # DO SPECIFIC LOSS STUFF HERE
-        unnormed_pred = sc.inv_normalize(pred, self.norm_args)
-        unnormed_target = sc.inv_normalize(target, self.norm_args)
+        unnormed_pred = sc.inv_normalize(pred, args=self.norm_args, method=self.norm_method)
+        unnormed_target = sc.inv_normalize(target, args=self.norm_args, method=self.norm_method)
+
 
         if loss_method == 'square':
             unnormed_loss = (unnormed_pred - unnormed_target) ** 2
         elif loss_method == 'abs': 
             unnormed_loss = torch.abs(unnormed_pred - unnormed_target)
 
+        del unnormed_target
+        del unnormed_pred
+
         loss = loss.mean(dim=-1)  # [N, L], mean loss per patch
         loss = (loss * mask).sum() / mask.sum()  # mean loss on removed patches
+
+        unnormed_loss = unnormed_loss.mean(dim=-1)  # [N, L], mean loss per patch
+        unnormed_loss = (unnormed_loss * mask).sum() / mask.sum()  # mean loss on removed patches
  
         if not math.isfinite(loss):
             print("Loss is {}, setting to 100 for now".format(loss))
@@ -239,17 +245,19 @@ class MaskedAutoencoderViT(nn.Module):
         
         return loss, unnormed_loss
 
-    def forward(self, imgs, mask_ratio=0.75):
-
-        # need to add in norm here since this class is where loss is calculated
-        imgs, args = sc.normalize(imgs, self.norm_method)
-        self.norm_args = args
+    def forward(self, imgs, mask_ratio=0.75, return_img=False):
+        imgs, args = sc.normalize(imgs, self.norm_method) 
+        self.norm_args = args 
 
         latent, mask, ids_restore = self.forward_encoder(imgs, mask_ratio)
         pred = self.forward_decoder(latent, ids_restore)  # [N, L, p*p*3]
         
         loss, unnormed_loss = self.forward_loss(imgs, pred, mask) 
-        return loss, unnormed_loss, pred, mask 
+
+        if return_img:
+            return loss, unnormed_loss, pred, mask
+        else:
+            return loss, unnormed_loss
 
 
 def mae_vit_base_patch16_dec512d8b(**kwargs):
@@ -259,7 +267,7 @@ def mae_vit_base_patch16_dec512d8b(**kwargs):
         mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
     return model
 
-# CURENT MODEL IN USE - MAY WANT TO LOWER LATENT DIM
+# MAY WANT TO LOWER LATENT DIM
 def mae_vit_large_patch16_dec512d8b(**kwargs): 
     model = MaskedAutoencoderViT(
         patch_size=8, embed_dim=1024, depth=24, num_heads=16,# 16-> 17?
