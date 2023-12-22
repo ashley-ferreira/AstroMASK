@@ -41,7 +41,7 @@ curl -E .ssl/cadcproxy.pem 'https://ws-uv.canfar.net/skaha/v0/session?name=noteb
 git clone https://github.com/astroai/dark3d.git
 git clone https://github.com/ashley-ferreira/mae.git
 ```
-6. You are now ready to train the model! Navigate to the mae directory and run the script that trains the model
+7. You are now ready to train the model! Navigate to the mae directory and run the script that trains the model
 ```
 cd mae
 python main_pretrain.py
@@ -52,7 +52,7 @@ which saves checkpoints in
 ```
 where DATETIME is the time at which the code began running in UTC.
 
-7. To analyze the outputs of this model, specifically the image reconstructions and the representations through UMAPs, t-SNEs, and similarity search, then run the notebooks found in `mae/demo`. 
+8. To analyze the outputs of this model, specifically the image reconstructions and the representations through UMAPs, t-SNEs, and similarity search, then run the notebooks found in `mae/demo`. 
 
 ### Acknowledgements
 Many others have contributed to this effort including my supervisors Sebastien Fabbro and Mike Hudson, as well as Spencer Bialek, Nat Comeau, Nick Heesters, and Leonardo Ferreira. 
