@@ -10,8 +10,12 @@
 # --------------------------------------------------------
 
 # TRY TO MAKE THIS RELATIVE? FOR USE ON CANFAR AND CC
-dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/dataloaders/'
-data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/valid2/'
+canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/dataloaders/'
+cc_dataloader_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/github/'
+
+canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/valid2/'
+cc_data_path = '/home/a4ferrei/projects/rrg-kyi/astro/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
+
 n_cutouts = 5*10000
 norm_method = 'min_max' 
 patch_size = 8
@@ -26,7 +30,7 @@ import time
 date_time = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 
 import sys
-sys.path.append(dataloader_path)
+sys.path.append(cc_dataloader_path)
 import dataloaders
 
 import wandb
@@ -77,10 +81,10 @@ def get_args_parser():
                         help='epochs to warmup LR')
 
     # Dataset parameters
-    parser.add_argument('--data_path', default=f'{data_path}/valid2/', type=str,
+    parser.add_argument('--data_path', default=f'{cc_data_path}/valid2/', type=str,
                         help='dataset path')
 
-    parser.add_argument('--output_dir', default=f'{data_path}/output_dir/{date_time}/',
+    parser.add_argument('--output_dir', default=f'{cc_data_path}/output_dir/{date_time}/',
                         help='path where to save, empty for no saving')
     parser.add_argument('--log_dir', default='./output_dir',
                         help='path where to tensorboard log')
@@ -154,7 +158,7 @@ def main(args):
         'bands': ['u', 'g', 'r', 'i', 'z'],
         'cutout_size': args.input_size,
         'cutouts_per_file': 10000,
-        'h5_directory': data_path
+        'h5_directory': cc_data_path
     }
     
     # define fataset and dataloaders
@@ -208,7 +212,7 @@ def main(args):
                 "norm_method": norm_method,
                 "checkpoint_loc": args.output_dir,
                 "note": "",
-                "data_path": data_path,
+                "data_path": cc_data_path,
                 "norm_method": norm_method,
                 "patch_size": patch_size 
             })
