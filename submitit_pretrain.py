@@ -31,7 +31,7 @@ def parse_args():
 
 
 def get_shared_folder() -> Path:
-    p = Path("/home/a4ferrei/projects/rrg-kyi/a4ferrei/jobs/")
+    p = Path("/home/a4ferrei/projects/rrg-kyi/a4ferrei/jobs/") # TEMP
     p.mkdir(exist_ok=True)
     return p
 
@@ -107,6 +107,7 @@ def main():
         nodes=nodes,
         timeout_min=timeout_min,  # max is 60 * 72
         # Below are cluster dependent parameters
+        account='rrg-kyi',
         slurm_partition=partition,
         slurm_signal_delay_s=120,
         **kwargs
