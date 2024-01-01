@@ -41,6 +41,9 @@ import wandb
 import torch
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader, SubsetRandomSampler
+
+import timm 
+assert timm.__version__ == "0.3.2"  # version check
 import timm.optim.optim_factory as optim_factory
 
 import models_mae
