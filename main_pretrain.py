@@ -16,6 +16,10 @@ cc_dataloader_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/github/dark3d/src
 canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
 cc_data_path = '/home/a4ferrei/projects/rrg-kyi/astro/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
 
+canfar_output_path = canfar_data_path
+cc_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/'
+
+
 n_cutouts = 5*10000
 norm_method = 'min_max' 
 patch_size = 8
@@ -84,7 +88,7 @@ def get_args_parser():
     parser.add_argument('--data_path', default=f'{cc_data_path}', type=str,
                         help='dataset path')
 
-    parser.add_argument('--output_dir', default=f'{cc_data_path}/output_dir/{date_time}/',
+    parser.add_argument('--output_dir', default=f'{cc_output_path}/output_dir/{date_time}/',
                         help='path where to save, empty for no saving')
     parser.add_argument('--log_dir', default='./output_dir',
                         help='path where to tensorboard log')
