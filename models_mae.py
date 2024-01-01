@@ -26,7 +26,6 @@ class MaskedAutoencoderViT(nn.Module):
                  mlp_ratio=4., norm_layer=nn.LayerNorm, norm_pix_loss=True,
                  norm_method=None): 
         super().__init__()
-        print('using the newer version!!')
 
         # --------------------------------------------------------------------------
         # MAE encoder specifics
