@@ -174,7 +174,7 @@ def main(args):
     log_writer = None
     
     # define the model
-    model = models_mae.__dict__[args.model](norm_pix_loss=args.norm_pix_loss, norm_method=norm_method, patch_size=patch_size)
+    model = models_mae.__dict__[args.model](norm_pix_loss=args.norm_pix_loss, norm_method=norm_method)#, patch_size=patch_size)
     model.to(device)
 
     model_without_ddp = model 
