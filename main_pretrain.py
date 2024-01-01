@@ -10,8 +10,8 @@
 # --------------------------------------------------------
 
 # TRY TO MAKE THIS RELATIVE? FOR USE ON CANFAR AND CC
-canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/dataloaders/'
-cc_dataloader_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/github/dark3d/src/models/training_framework/dataloaders/'
+canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/'
+cc_dataloader_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/github/dark3d/src/models/training_framework/'
 
 canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/valid2/'
 cc_data_path = '/home/a4ferrei/projects/rrg-kyi/astro/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
@@ -31,7 +31,7 @@ date_time = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 
 import sys
 sys.path.insert(0, cc_dataloader_path)
-import dataloaders
+import dataloaders.dataloaders
 
 import wandb
 import torch
