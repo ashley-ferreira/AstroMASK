@@ -108,8 +108,8 @@ def main():
         timeout_min=timeout_min,  # max is 60 * 72
         # Below are cluster dependent parameters
         account='rrg-kyi',
-        slurm_partition=partition,
-        slurm_signal_delay_s=120,
+        #slurm_partition=partition,
+        #slurm_signal_delay_s=120,
         **kwargs
     )
 
