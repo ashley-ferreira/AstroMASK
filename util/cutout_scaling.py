@@ -11,9 +11,9 @@ from torch.utils.data import SubsetRandomSampler
 from torch.utils.data import DataLoader, SubsetRandomSampler
 
 # move these into args if using long term
-data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
-norm_method = None 
-norm_args = None
+#data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
+#norm_method = None 
+#norm_args = None
 date_time = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 
 overall_means = []
@@ -60,7 +60,7 @@ def entire_dataset_args(loader):
 
 '''
 code used to call the above
-'''
+
 n_cutouts_train = 5*10000
     
 dataset_indices = list(range(n_cutouts_train))
@@ -83,6 +83,7 @@ kwargs_train = {
 train_dataset = dataloaders.SpencerHDF5ReaderDataset(**kwargs_train)
 train_loader = DataLoader(dataset=train_dataset, shuffle=False, batch_size=1024, sampler=train_sampler, num_workers=4)
 entire_dataset_args(train_loader)
+'''
 
 def min_max(cutout):
     #normalize so that min pixel value 

@@ -13,7 +13,7 @@
 canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/'
 cc_dataloader_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/github/dark3d/src/models/training_framework/'
 
-canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/valid2/'
+canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
 cc_data_path = '/home/a4ferrei/projects/rrg-kyi/astro/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
 
 n_cutouts = 5*10000
