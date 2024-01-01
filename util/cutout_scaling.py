@@ -4,8 +4,8 @@ from astropy.stats import mad_std
 import torch
 import datetime
 import sys
-sys.path.append('/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/dataloaders/')
-import dataloaders
+#sys.path.append('/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/dataloaders/')
+#import dataloaders
 import timm.optim.optim_factory as optim_factory
 from torch.utils.data import SubsetRandomSampler
 from torch.utils.data import DataLoader, SubsetRandomSampler

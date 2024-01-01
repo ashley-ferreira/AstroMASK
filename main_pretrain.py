@@ -81,7 +81,7 @@ def get_args_parser():
                         help='epochs to warmup LR')
 
     # Dataset parameters
-    parser.add_argument('--data_path', default=f'{cc_data_path}/valid2/', type=str,
+    parser.add_argument('--data_path', default=f'{cc_data_path}', type=str,
                         help='dataset path')
 
     parser.add_argument('--output_dir', default=f'{cc_data_path}/output_dir/{date_time}/',
