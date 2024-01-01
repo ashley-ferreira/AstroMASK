@@ -52,7 +52,7 @@ def get_args_parser():
     parser = argparse.ArgumentParser('MAE pre-training', add_help=False)
     parser.add_argument('--batch_size', default=16, type=int, 
                         help='Batch size per GPU (effective batch size is batch_size * accum_iter * # gpus')
-    parser.add_argument('--epochs', default=500, type=int)
+    parser.add_argument('--epochs', default=100, type=int)
     parser.add_argument('--accum_iter', default=4, type=int,
                         help='Accumulate gradient iterations (for increasing the effective batch size under memory constraints)')
 
@@ -63,7 +63,7 @@ def get_args_parser():
     parser.add_argument('--input_size', default=64, type=int,
                         help='images input size')
 
-    parser.add_argument('--mask_ratio', default=0.5,type=float,
+    parser.add_argument('--mask_ratio', default=0.75,type=float,
                         help='Masking ratio (percentage of removed patches).')
 
     parser.add_argument('--norm_pix_loss', action='store_true', 
