@@ -152,8 +152,9 @@ class MaskedAutoencoderViT(nn.Module):
 
     def forward_encoder(self, x, mask_ratio):
         # embed patches
-        x.to(torch.float32)
-        self.to(torch.float32)
+        #x.to(torch.float32)
+        #self.to(torch.float32)
+        x.to(torch.FloatTensor)
         x = self.patch_embed(x)
 
         # add pos embed w/o cls token
