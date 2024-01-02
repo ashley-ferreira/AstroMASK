@@ -119,10 +119,10 @@ def train_one_epoch(model: torch.nn.Module,
 
     _, _, pred, mask = model(samples, mask_ratio=args.mask_ratio, return_img=True) 
     
-    pred = model.unpatchify(pred) 
-    pred = pred.detach().cpu()
-    reconstructed_images = wandb.Image(pred[0,0:3,:,:]) 
-    truth_images = wandb.Image(samples.detach().cpu()[0,0:3,:,:])
+    #pred = model.unpatchify(pred) 
+    #pred = pred.detach().cpu()
+    #reconstructed_images = wandb.Image(pred[0,0:3,:,:]) 
+    #truth_images = wandb.Image(samples.detach().cpu()[0,0:3,:,:])
 
     wandb.log({
                 "learning_rate": lr,
@@ -130,7 +130,8 @@ def train_one_epoch(model: torch.nn.Module,
                 "val_loss": val_loss_avg, 
                 "train_unnorm_loss": train_unnorm_loss_avg, 
                 "val_unnorm_loss": val_unnorm_loss_avg,
-                "truth_image": truth_images,
-                "reconstruction": reconstructed_images})
+                #"truth_image": truth_images,
+                #"reconstruction": reconstructed_images
+                })
     
     return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
