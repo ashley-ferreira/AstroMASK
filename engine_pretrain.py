@@ -92,7 +92,6 @@ def train_one_epoch(model: torch.nn.Module,
     train_unnorm_loss_avg = sum(train_unnorm_loss) / len(train_unnorm_loss)
     
     model.eval()
-    model.to(torch.float32)
     val_loss, val_unnorm_loss = [], []
     total_batches = len(val_loader)
     for i_val, samples in enumerate(val_loader):
