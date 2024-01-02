@@ -14,13 +14,13 @@ canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_fr
 cc_dataloader_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/github/dark3d/src/models/training_framework/'
 
 canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
-cc_data_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/data/spencer_cutout/'
+cc_data_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/data/spencer_cutout/valid2/'
 
 canfar_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/jobs/'
 cc_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/'
 
 
-n_cutouts = 47*10000
+n_cutouts = 5*10000 #47
 norm_method = 'min_max' 
 patch_size = 8
 
@@ -66,7 +66,7 @@ def get_args_parser():
     parser.add_argument('--input_size', default=64, type=int,
                         help='images input size')
 
-    parser.add_argument('--mask_ratio', default=0.75,type=float,
+    parser.add_argument('--mask_ratio', default=0.5,type=float,
                         help='Masking ratio (percentage of removed patches).')
 
     parser.add_argument('--norm_pix_loss', action='store_true', 
