@@ -14,13 +14,13 @@ canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_fr
 cc_dataloader_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/github/dark3d/src/models/training_framework/'
 
 canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
-cc_data_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/data/spencer_cutout/valid2/'
+cc_data_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/data/spencer_cutout/'
 
 canfar_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/jobs/'
 cc_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/'
 
 
-n_cutouts = 5*10000 #47
+n_cutouts = 47*10000 
 norm_method = 'min_max' 
 patch_size = 8
 
@@ -179,6 +179,7 @@ def main(args):
     # define the model
     model = models_mae.__dict__[args.model](norm_pix_loss=args.norm_pix_loss, norm_method=norm_method)#, patch_size=patch_size)
     model.to(device)
+    model.to(torch.float32)
 
     model_without_ddp = model 
     print("Model = %s" % str(model_without_ddp))
