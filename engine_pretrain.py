@@ -37,6 +37,9 @@ def train_one_epoch(model: torch.nn.Module,
     total_batches = len(train_loader) 
     
     for i_train, samples in enumerate(train_loader):       
+        print(type(samples))
+        print(samples[0])
+        
         # we use a per iteration (instead of per epoch) lr scheduler
         if i_train % accum_iter == 0:
             lr_sched.adjust_learning_rate(optimizer, i_train / total_batches + epoch, args)
