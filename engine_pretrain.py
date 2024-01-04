@@ -37,9 +37,9 @@ def train_one_epoch(model: torch.nn.Module,
     total_batches = len(train_loader) 
     
     for i_train, samples in enumerate(train_loader):       
-        print(type(samples))
-        print(samples.dtype)
-        print(samples[0])
+        #print(type(samples))
+        #print(samples.dtype)
+        #print(samples[0])
 
         # we want all to be in float32 or else we get the following error:
         # Input type (double) and bias type (c10::Half) should be the same
