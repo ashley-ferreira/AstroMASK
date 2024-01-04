@@ -38,8 +38,9 @@ def train_one_epoch(model: torch.nn.Module,
     
     for i_train, samples in enumerate(train_loader):       
         print(type(samples))
+        print(samples.dtype)
         print(samples[0])
-        
+
         # we use a per iteration (instead of per epoch) lr scheduler
         if i_train % accum_iter == 0:
             lr_sched.adjust_learning_rate(optimizer, i_train / total_batches + epoch, args)
@@ -99,8 +100,6 @@ def train_one_epoch(model: torch.nn.Module,
     total_batches = len(val_loader)
     for i_val, samples in enumerate(val_loader):
         samples = samples.to(device, non_blocking=True)
-        print(type(samples))
-        print(samples[0])
        
         try: 
             with torch.cuda.amp.autocast():
