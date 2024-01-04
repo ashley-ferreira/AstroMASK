@@ -139,7 +139,7 @@ def train_one_epoch(model: torch.nn.Module,
                 "learning_rate": lr,
                 "epochs": epoch,
                 "val_loss": val_loss_avg, 
-                "train_loss": train_loss_avg
+                "train_loss": train_loss_avg,
                 "train_unnorm_loss": train_unnorm_loss_avg, 
                 "val_unnorm_loss": val_unnorm_loss_avg,
                 #"truth_image": truth_images,
