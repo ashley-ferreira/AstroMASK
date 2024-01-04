@@ -41,6 +41,11 @@ def train_one_epoch(model: torch.nn.Module,
         print(samples.dtype)
         print(samples[0])
 
+        # we want all to be in float32 or else we get the following error:
+        # Input type (double) and bias type (c10::Half) should be the same
+        samples = samples.float() #.type(torch.cuda.FloatTensor)
+        print(samples.dtype)
+
         # we use a per iteration (instead of per epoch) lr scheduler
         if i_train % accum_iter == 0:
             lr_sched.adjust_learning_rate(optimizer, i_train / total_batches + epoch, args)
