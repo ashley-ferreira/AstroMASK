@@ -14,7 +14,7 @@ canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_fr
 cc_dataloader_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/github/dark3d/src/models/training_framework/'
 
 canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
-cc_data_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/data/spencer_cutout/valid2'
+cc_data_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/data/spencer_cutout/valid2/'
 
 canfar_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/jobs/'
 cc_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/'
@@ -53,10 +53,10 @@ from engine_pretrain import train_one_epoch
 
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE pre-training', add_help=False)
-    parser.add_argument('--batch_size', default=16, type=int, 
+    parser.add_argument('--batch_size', default=64, type=int, 
                         help='Batch size per GPU (effective batch size is batch_size * accum_iter * # gpus')
     parser.add_argument('--epochs', default=100, type=int)
-    parser.add_argument('--accum_iter', default=4, type=int,
+    parser.add_argument('--accum_iter', default=1, type=int,
                         help='Accumulate gradient iterations (for increasing the effective batch size under memory constraints)')
 
     # Model parameters
