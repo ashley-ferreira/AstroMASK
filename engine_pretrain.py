@@ -88,7 +88,7 @@ def train_one_epoch(model: torch.nn.Module,
             print('##############\n',e,'##############\n')
         
     # currently used - will need to reconsider for distributed
-    train_loss_avg = sum(train_loss) / len(train_loss)
+    train_loss_avg = sum(train_loss) / len(train_loss) 
     train_unnorm_loss_avg = sum(train_unnorm_loss) / len(train_unnorm_loss)
     
     model.eval()
@@ -96,6 +96,8 @@ def train_one_epoch(model: torch.nn.Module,
     total_batches = len(val_loader)
     for i_val, samples in enumerate(val_loader):
         samples = samples.to(device, non_blocking=True)
+        print(type(samples))
+        print(samples[0])
        
         try: 
             with torch.cuda.amp.autocast():
@@ -126,7 +128,7 @@ def train_one_epoch(model: torch.nn.Module,
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)
 
-    _, _, pred, mask = model(samples, mask_ratio=args.mask_ratio, return_img=True) 
+    #_, _, pred, mask = model(samples, mask_ratio=args.mask_ratio, return_img=True) 
     
     #pred = model.unpatchify(pred) 
     #pred = pred.detach().cpu()
@@ -137,6 +139,7 @@ def train_one_epoch(model: torch.nn.Module,
                 "learning_rate": lr,
                 "epochs": epoch,
                 "val_loss": val_loss_avg, 
+                "train_loss": train_loss_avg
                 "train_unnorm_loss": train_unnorm_loss_avg, 
                 "val_unnorm_loss": val_unnorm_loss_avg,
                 #"truth_image": truth_images,
