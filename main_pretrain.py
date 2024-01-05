@@ -20,7 +20,7 @@ canfar_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/jobs/'
 cc_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/'
 
 
-n_cutouts = 47*10000 
+n_cutouts = 295*10000 #500
 norm_method = 'min_max' 
 patch_size = 8
 
