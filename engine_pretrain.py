@@ -121,7 +121,7 @@ def train_one_epoch(model: torch.nn.Module,
                 loss /= (real_batch_size * accum_iter)
                 unnorm_loss /= (real_batch_size * accum_iter)
                 
-                print(header + ' Batch [{}/{}]'.format(i_val, total_batches) + ' Val Loss: {:.6f}'.format(loss)) 
+                print(header + ' Batch [{}/{}]'.format(i_val, total_batches) + ' Val Loss: {:.12f}'.format(loss)) 
                 loss_value_validation = misc.all_reduce_mean(loss)
                 
             val_loss.append(loss_value)
