@@ -105,6 +105,7 @@ def train_one_epoch(model: torch.nn.Module,
     total_batches = len(val_loader)
     for i_val, samples in enumerate(val_loader):
         samples = samples.to(device, non_blocking=True)
+        samples = samples.float()
        
         try: 
             with torch.cuda.amp.autocast():

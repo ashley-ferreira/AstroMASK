@@ -20,7 +20,7 @@ canfar_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/jobs/'
 cc_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/'
 
 
-n_cutouts = 295*10000 #500
+n_cutouts = 500*10000 
 norm_method = 'min_max' 
 patch_size = 8
 
@@ -152,7 +152,7 @@ def main(args):
     # split up the dataset in dataset_path into train and validation
     dataset_indices = list(range(n_cutouts))
     np.random.shuffle(dataset_indices)
-    frac = 0.3 # decrease when we have more data
+    frac = 0.1 # decrease when we have more data
     val_split_index = int(np.floor(frac * n_cutouts))
     train_idx, val_idx = dataset_indices[val_split_index:], dataset_indices[:val_split_index]
 
@@ -222,7 +222,8 @@ def main(args):
                 "note": "",
                 "data_path": cc_data_path,
                 "norm_method": norm_method,
-                "patch_size": patch_size 
+                "patch_size": patch_size,
+                "train_val_split": frac,
             })
     
     print(f"Start training for {args.epochs} epochs")
