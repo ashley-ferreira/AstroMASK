@@ -209,8 +209,8 @@ def main(args):
 
     # Set the project where this run will be logged
     run = wandb.init(
-            entity="astro-ssl",
-            project="fb-mae",
+            entity="ashleyferreira",
+            project="compute-can-mae",
             config={
                 "base_lr": args.blr,
                 "batch_size": args.batch_size,
