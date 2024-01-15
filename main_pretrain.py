@@ -9,7 +9,7 @@
 # BEiT: https://github.com/microsoft/unilm/tree/master/beit
 # --------------------------------------------------------
 
-use_slurm_temp_dir = False
+use_slurm_temp_dir = True
 
 # TRY TO MAKE THIS RELATIVE? FOR USE ON CANFAR AND CC
 canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/'
@@ -252,7 +252,7 @@ def main(args):
                 "norm_pix_loss": args.norm_pix_loss,
                 "model": args.model,
                 "norm_method": norm_method,
-                "checkpoint_loc": args.output_dir,
+                "checkpoint_loc": str(args.output_dir),
                 "note": "",
                 "data_path": src+cc_data_path,
                 "norm_method": norm_method,
