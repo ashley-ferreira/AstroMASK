@@ -15,7 +15,7 @@ from pathlib import Path
 import main_pretrain as trainer
 import submitit
 
-use_slurm_temp_dir = True
+use_slurm_temp_dir = False
 
 def parse_args():
     trainer_parser = trainer.get_args_parser()

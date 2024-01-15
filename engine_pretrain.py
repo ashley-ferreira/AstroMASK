@@ -25,7 +25,7 @@ def train_one_epoch(model: torch.nn.Module,
                     log_writer=None, args=None, norm_method=None):
     
     start_time = time.time()
-    
+
     model.train(True)
     metric_logger = misc.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', misc.SmoothedValue(window_size=1, fmt='{value:.6f}'))
@@ -48,7 +48,7 @@ def train_one_epoch(model: torch.nn.Module,
         # we want all to be in float32 or else we get the following error:
         # Input type (double) and bias type (c10::Half) should be the same
         samples = samples.float() #.type(torch.cuda.FloatTensor)
-        print(samples.dtype)
+        #print(samples.dtype)
 
         # we use a per iteration (instead of per epoch) lr scheduler
         if i_train % accum_iter == 0:
