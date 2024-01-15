@@ -147,8 +147,7 @@ def main(args):
         print('start of data transfer to $SLURM_TMPDIR')
         # move files from $SCRATCH to $SLURM_TMPDIR
         dest = '$SLURM_TMPDIR'
-        temp_out_path = dest+str(args.output_dir)
-        destination = shutil.copytree(src+cc_data_path, temp_out_path)  
+        destination = shutil.copytree(src+cc_data_path, dest+cc_data_path)  
         transfer_time = time.time() - start_time
         print(destination)
         print('end of data transfer to $SLURM_TMPDIR')
