@@ -33,7 +33,7 @@ def get_shared_folder() -> Path:
     if use_slurm_temp_dir:
         p = Path("$SLURM_TMPDIR/astro-mask/jobs/")
     else:
-        p = Path("$SCRATCH/astro-mask/jobs/")
+        p = Path("/home/a4ferrei/scratch/astro-mask/jobs/")
 
     p.mkdir(exist_ok=True)
     return p
