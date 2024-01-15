@@ -62,9 +62,8 @@ import models_mae
 import util.misc as misc
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
 from engine_pretrain import train_one_epoch
-
+from distutils.dir_util import copy_tree
 import shutil 
-import time
 
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE pre-training', add_help=False)
@@ -147,7 +146,7 @@ def main(args):
         # move files from $SCRATCH to $SLURM_TMPDIR
         dest = '$SLURM_TMPDIR'
         initial_start_time = time.time()
-        destination = shutil.copytree(src+cc_data_path, dest+cc_data_path)  
+        destination = copy_tree(src+cc_data_path, dest+cc_data_path)  
         transfer_time = time.time() - initial_start_time
         print(destination)
         print('end of data transfer to $SLURM_TMPDIR')
