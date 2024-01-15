@@ -148,12 +148,14 @@ def main(args):
         # move files from $SCRATCH to $SLURM_TMPDIR
         dest = '$SLURM_TMPDIR'
         destination = shutil.copytree(src+cc_data_path, dest+cc_data_path)  
+        transfer_time = time.time() - start_time
         print(destination)
         print('end of data transfer to $SLURM_TMPDIR')
-        print(f'transfer time of {time.time() - start_time} seconds')
+        print(f'transfer time of {transfer_time} seconds')
         os.makedirs(src+args.output_dir, exist_ok=True)
     else:
         dest = src #'$SCRATCH'
+        transfer_time = 0
 
     os.makedirs(src+args.output_dir, exist_ok=True)
 
@@ -255,6 +257,7 @@ def main(args):
                 "patch_size": patch_size,
                 "train_val_split": frac,
                 "use_slurm_temp_dir": use_slurm_temp_dir,
+                "transfer_time": transfer_time,
             })
     
     print(f"Start training for {args.epochs} epochs")
@@ -288,5 +291,9 @@ if __name__ == '__main__':
     args = get_args_parser()
     args = args.parse_args()
     if args.output_dir:
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+        if use_slurm_temp_dir: # clean this all up later!!
+            dest = '$SLURM_TMPDIR'
+            Path(dest+args.output_dir).mkdir(parents=True, exist_ok=True)
+        else:
+            Path(src+args.output_dir).mkdir(parents=True, exist_ok=True)
     main(args)
