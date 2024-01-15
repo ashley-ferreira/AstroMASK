@@ -147,17 +147,19 @@ def main(args):
         print('start of data transfer to $SLURM_TMPDIR')
         # move files from $SCRATCH to $SLURM_TMPDIR
         dest = '$SLURM_TMPDIR'
-        destination = shutil.copytree(src+cc_data_path, dest+cc_data_path)  
+        temp_out_path = dest+args.output_dir
+        destination = shutil.copytree(src+cc_data_path, temp_out_path)  
         transfer_time = time.time() - start_time
         print(destination)
         print('end of data transfer to $SLURM_TMPDIR')
         print(f'transfer time of {transfer_time} seconds')
-        os.makedirs(src+args.output_dir, exist_ok=True)
+        os.makedirs(temp_out_path, exist_ok=True)
     else:
         dest = src #'$SCRATCH'
         transfer_time = 0
+        temp_out_path = dest+args.output_dir
 
-    os.makedirs(src+args.output_dir, exist_ok=True)
+    os.makedirs(temp_out_path, exist_ok=True)
 
     misc.init_distributed_mode(args)
 
@@ -291,10 +293,8 @@ if __name__ == '__main__':
     args = get_args_parser()
     args = args.parse_args()
     if args.output_dir:
-
         if use_slurm_temp_dir: # clean this all up later!!
             dest = '$SLURM_TMPDIR'
-
         else: 
             dest = src
         temp_out_path = dest+args.output_dir
