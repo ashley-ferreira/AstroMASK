@@ -291,9 +291,12 @@ if __name__ == '__main__':
     args = get_args_parser()
     args = args.parse_args()
     if args.output_dir:
+
         if use_slurm_temp_dir: # clean this all up later!!
             dest = '$SLURM_TMPDIR'
-            Path(dest+args.output_dir).mkdir(parents=True, exist_ok=True)
-        else:
-            Path(src+args.output_dir).mkdir(parents=True, exist_ok=True)
+
+        else: 
+            dest = src
+        temp_out_path = dest+args.output_dir
+        Path(temp_out_path).mkdir(parents=True, exist_ok=True)
     main(args)
