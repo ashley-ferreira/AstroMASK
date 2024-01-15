@@ -65,7 +65,6 @@ from engine_pretrain import train_one_epoch
 
 import shutil 
 import time
-start_time = time.time()
 
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE pre-training', add_help=False)
@@ -147,8 +146,9 @@ def main(args):
         print('start of data transfer to $SLURM_TMPDIR')
         # move files from $SCRATCH to $SLURM_TMPDIR
         dest = '$SLURM_TMPDIR'
+        initial_start_time = time.time()
         destination = shutil.copytree(src+cc_data_path, dest+cc_data_path)  
-        transfer_time = time.time() - start_time
+        transfer_time = time.time() - initial_start_time
         print(destination)
         print('end of data transfer to $SLURM_TMPDIR')
         print(f'transfer time of {transfer_time} seconds')
