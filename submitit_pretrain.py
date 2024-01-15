@@ -15,13 +15,14 @@ from pathlib import Path
 import main_pretrain as trainer
 import submitit
 
+use_slurm_temp_dir = False
 
 def parse_args():
     trainer_parser = trainer.get_args_parser()
     parser = argparse.ArgumentParser("Submitit for MAE pretrain", parents=[trainer_parser])
     parser.add_argument("--ngpus", default=4, type=int, help="Number of gpus to request on each node") #4
     parser.add_argument("--nodes", default=1, type=int, help="Number of nodes to request")
-    parser.add_argument("--timeout", default=20000, type=int, help="Duration of the job (minutes)") 
+    parser.add_argument("--timeout", default=200, type=int, help="Duration of the job (minutes)") 
     parser.add_argument("--job_dir", default="", type=str, help="Job dir. Leave empty for automatic.")
     parser.add_argument("--partition", default="learnfair", type=str, help="Partition where to submit")
     parser.add_argument('--comment', default="", type=str, help="Comment to pass to scheduler")
@@ -29,7 +30,11 @@ def parse_args():
 
 
 def get_shared_folder() -> Path:
-    p = Path("/home/a4ferrei/projects/rrg-kyi/a4ferrei/jobs/") # TEMP
+    if use_slurm_temp_dir:
+        p = Path("$SLURM_TMPDIR/astro-mask/jobs/")
+    else:
+        p = Path("$SCRATCH/astro-mask/jobs/")
+
     p.mkdir(exist_ok=True)
     return p
 
@@ -94,7 +99,7 @@ def main():
         mem_gb=40 * num_gpus_per_node,
         gpus_per_node=num_gpus_per_node,
         tasks_per_node=num_gpus_per_node,  # one task per GPU
-        cpus_per_task=3,#6,
+        cpus_per_task=6,
         nodes=nodes,
         timeout_min=timeout_min,  # max is 60 * 72
         # Below are cluster dependent parameters

@@ -9,18 +9,30 @@
 # BEiT: https://github.com/microsoft/unilm/tree/master/beit
 # --------------------------------------------------------
 
+use_slurm_temp_dir = False
+
 # TRY TO MAKE THIS RELATIVE? FOR USE ON CANFAR AND CC
 canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/'
-cc_dataloader_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/github/dark3d/src/models/training_framework/'
-
 canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
-cc_data_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/data/spencer_cutout/'
+canfar_output_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
 
-canfar_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/jobs/'
-cc_output_path = '/home/a4ferrei/projects/rrg-kyi/a4ferrei/'
+'''
+if use_slurm_temp_dir:
+    cc_dataloader_path = '$SLURM_TMPDIR/github/dark3d/src/models/training_framework/'
+    cc_data_path = '$SLURM_TMPDIR/data/spencer_cutout/valid2/'
+    cc_output_path = '$SLURM_TMPDIR/'
 
+else:
+    cc_dataloader_path = '~/scratch/github/dark3d/src/models/training_framework/'
+    cc_data_path = '~/scratch/data/spencer_cutout/valid2/'
+    cc_output_path = '~/scratch/'
+'''
+src = '$SCRATCH'
+cc_dataloader_path = '/github/dark3d/src/models/training_framework/'
+cc_data_path = '/data/spencer_cutout/valid2/'
+cc_output_path = '/astro-mask/'
 
-n_cutouts = 500*10000 
+n_cutouts = 5*10000 #500
 norm_method = 'min_max' 
 patch_size = 8
 
@@ -51,11 +63,15 @@ import util.misc as misc
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
 from engine_pretrain import train_one_epoch
 
+import shutil 
+import time
+start_time = time.time()
+
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE pre-training', add_help=False)
     parser.add_argument('--batch_size', default=64, type=int, 
                         help='Batch size per GPU (effective batch size is batch_size * accum_iter * # gpus')
-    parser.add_argument('--epochs', default=100, type=int)
+    parser.add_argument('--epochs', default=10, type=int)
     parser.add_argument('--accum_iter', default=1, type=int,
                         help='Accumulate gradient iterations (for increasing the effective batch size under memory constraints)')
 
@@ -84,7 +100,7 @@ def get_args_parser():
     parser.add_argument('--min_lr', type=float, default=0., metavar='LR',
                         help='lower lr bound for cyclic schedulers that hit 0')
 
-    parser.add_argument('--warmup_epochs', type=int, default=20, metavar='N',
+    parser.add_argument('--warmup_epochs', type=int, default=2, metavar='N',
                         help='epochs to warmup LR')
 
     # Dataset parameters
@@ -106,7 +122,7 @@ def get_args_parser():
     
     # sometimes this does not work for >0, error is: "ERROR: Unexpected bus error 
     # encountered in worker. This might be caused by insufficient shared memory (shm).""
-    parser.add_argument('--num_workers', default=3, type=int) 
+    parser.add_argument('--num_workers', default=4, type=int) 
 
     parser.add_argument('--pin_mem', action='store_true',
                         help='Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.')
@@ -126,7 +142,21 @@ def get_args_parser():
 
 def main(args):
     print('main_pretrain.main')
-    os.makedirs(args.output_dir, exist_ok=True)
+
+    if use_slurm_temp_dir:
+        print('start of data transfer to $SLURM_TMPDIR')
+        # move files from $SCRATCH to $SLURM_TMPDIR
+        dest = '$SLURM_TMPDIR'
+        destination = shutil.copytree(src+cc_data_path, dest+cc_data_path)  
+        print(destination)
+        print('end of data transfer to $SLURM_TMPDIR')
+        print(f'transfer time of {time.time() - start_time} seconds')
+        os.makedirs(src+args.output_dir, exist_ok=True)
+    else:
+        dest = '$SCRATCH'
+
+    os.makedirs(src+args.output_dir, exist_ok=True)
+
     misc.init_distributed_mode(args)
 
     print('job dir: {}'.format(os.path.dirname(os.path.realpath(__file__))))
@@ -165,7 +195,7 @@ def main(args):
         'bands': ['u', 'g', 'r', 'i', 'z'],
         'cutout_size': args.input_size,
         'cutouts_per_file': 10000,
-        'h5_directory': cc_data_path
+        'h5_directory': dest+cc_data_path
     }
     
     # define fataset and dataloaders
@@ -220,10 +250,11 @@ def main(args):
                 "norm_method": norm_method,
                 "checkpoint_loc": args.output_dir,
                 "note": "",
-                "data_path": cc_data_path,
+                "data_path": src+cc_data_path,
                 "norm_method": norm_method,
                 "patch_size": patch_size,
                 "train_val_split": frac,
+                "use_slurm_temp_dir": use_slurm_temp_dir,
             })
     
     print(f"Start training for {args.epochs} epochs")

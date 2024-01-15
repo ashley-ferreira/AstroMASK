@@ -16,12 +16,16 @@ import numpy as np
 import util.misc as misc
 import util.lr_sched as lr_sched
 import wandb
+import time
 
 def train_one_epoch(model: torch.nn.Module,
                     train_loader: Iterable, val_loader: Iterable, 
                     optimizer: torch.optim.Optimizer,
                     device: torch.device, epoch: int, loss_scaler,
                     log_writer=None, args=None, norm_method=None):
+    
+    start_time = time.time()
+    
     model.train(True)
     metric_logger = misc.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', misc.SmoothedValue(window_size=1, fmt='{value:.6f}'))
@@ -150,6 +154,7 @@ def train_one_epoch(model: torch.nn.Module,
                 "train_loss": train_loss_avg,
                 "train_unnorm_loss": train_unnorm_loss_avg, 
                 "val_unnorm_loss": val_unnorm_loss_avg,
+                "epoch_runtime": time.time()-start_time,
                 #"truth_image": truth_images,
                 #"reconstruction": reconstructed_images
                 })
