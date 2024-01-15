@@ -46,7 +46,7 @@ import time
 date_time = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 
 import sys
-sys.path.insert(0, cc_dataloader_path)
+sys.path.insert(0, src+cc_dataloader_path)
 import dataloaders.dataloaders
 
 import wandb
