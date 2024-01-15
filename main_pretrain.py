@@ -27,7 +27,7 @@ else:
     cc_data_path = '~/scratch/data/spencer_cutout/valid2/'
     cc_output_path = '~/scratch/'
 '''
-src = '$SCRATCH'
+src = '~/scratch/' # instead of '$SCRATCH'
 cc_dataloader_path = '/github/dark3d/src/models/training_framework/'
 cc_data_path = '/data/spencer_cutout/valid2/'
 cc_output_path = '/astro-mask/'
