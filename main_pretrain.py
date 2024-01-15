@@ -153,7 +153,7 @@ def main(args):
         print(f'transfer time of {time.time() - start_time} seconds')
         os.makedirs(src+args.output_dir, exist_ok=True)
     else:
-        dest = '$SCRATCH'
+        dest = src #'$SCRATCH'
 
     os.makedirs(src+args.output_dir, exist_ok=True)
 
