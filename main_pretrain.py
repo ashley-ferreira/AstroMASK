@@ -268,7 +268,7 @@ def main(args):
                 "model": args.model,
                 "norm_method": norm_method,
                 "checkpoint_loc": str(args.output_dir),
-                "note": "",
+                "note": "just using if misc.get_rank() == 0:",
                 "data_path": src+cc_data_path,
                 "norm_method": norm_method,
                 "patch_size": patch_size,
