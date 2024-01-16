@@ -156,8 +156,8 @@ def main(args):
             transfer_time = 0
         '''
 
-        # do transfer just once (first check may be redundnat)
-        if num_gpus == 1 or misc.get_rank() == 0:
+        # do transfer just once
+        if misc.get_rank() == 0:
             initial_start_time = time.time()
             destination = shutil.copytree(src+cc_data_path, dest+cc_data_path, dirs_exist_ok=True)  
             transfer_time = time.time() - initial_start_time
