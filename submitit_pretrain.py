@@ -15,6 +15,13 @@ from pathlib import Path
 import main_pretrain as trainer
 import submitit
 
+import shutil 
+import time
+
+use_slurm_temp_dir = True
+src = '/home/a4ferrei/scratch/' 
+cc_data_path = '/data/spencer_cutout/valid2/'
+
 def parse_args():
     trainer_parser = trainer.get_args_parser()
     parser = argparse.ArgumentParser("Submitit for MAE pretrain", parents=[trainer_parser])
@@ -75,6 +82,21 @@ class Trainer(object):
         self.args.rank = job_env.global_rank
         self.args.world_size = job_env.num_tasks
         print(f"Process group: {job_env.num_tasks} tasks, rank: {job_env.global_rank}")
+
+        # move files from $SCRATCH to $SLURM_TMPDIR if True
+        if use_slurm_temp_dir:
+
+            # do transfer just once
+            if job_env.global_rank == 0:
+                print('start of data transfer to $SLURM_TMPDIR')
+                dest = '$SLURM_TMPDIR'
+                initial_start_time = time.time()
+                destination = shutil.copytree(src+cc_data_path, dest+cc_data_path, dirs_exist_ok=True)  
+                transfer_time = time.time() - initial_start_time
+                print(destination)
+
+                print('end of data transfer to $SLURM_TMPDIR')
+                print(f'transfer time of {transfer_time} seconds')
 
 
 def main():

@@ -134,28 +134,9 @@ def main(args):
     print('main_pretrain.main')
 
     if use_slurm_temp_dir:
-        # move files from $SCRATCH to $SLURM_TMPDIR
-        print('start of data transfer to $SLURM_TMPDIR')
         dest = '$SLURM_TMPDIR'
-
-        rank = misc.get_rank()
-        print('rank:', rank)
-        # do transfer just once
-        if rank == 0:
-            initial_start_time = time.time()
-            destination = shutil.copytree(src+cc_data_path, dest+cc_data_path, dirs_exist_ok=True)  
-            transfer_time = time.time() - initial_start_time
-            print(destination)
-
-        else:
-            transfer_time = 0
-
-        print('end of data transfer to $SLURM_TMPDIR')
-        print(f'transfer time of {transfer_time} seconds')
-
     else:
-        dest = src #'$SCRATCH'
-        transfer_time = 0
+        dest = src
     
     temp_out_path = dest+str(args.output_dir)
     os.makedirs(temp_out_path, exist_ok=True)
@@ -252,13 +233,12 @@ def main(args):
                 "model": args.model,
                 "norm_method": norm_method,
                 "checkpoint_loc": str(args.output_dir),
-                "note": "just using if misc.get_rank() == 0:",
+                "note": "",
                 "data_path": src+cc_data_path,
                 "norm_method": norm_method,
                 "patch_size": patch_size,
                 "train_val_split": frac,
                 "use_slurm_temp_dir": use_slurm_temp_dir,
-                "transfer_time": transfer_time,
             })
     
     print(f"Start training for {args.epochs} epochs")

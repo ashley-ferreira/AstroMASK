@@ -59,7 +59,6 @@ def train_one_epoch(model: torch.nn.Module,
 
         try: 
             with torch.cuda.amp.autocast():
-                #samples.to(torch.float32)
                 loss, unnorm_loss = model(samples, mask_ratio=args.mask_ratio)
 
             loss_value = loss.item()
