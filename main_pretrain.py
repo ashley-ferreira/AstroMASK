@@ -9,13 +9,12 @@
 # BEiT: https://github.com/microsoft/unilm/tree/master/beit
 # --------------------------------------------------------
 
-use_slurm_temp_dir = False
+use_slurm_temp_dir = True
 
 # TRY TO MAKE THIS RELATIVE? FOR USE ON CANFAR AND CC
 canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/'
 canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
 canfar_output_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
-
 
 src = '/home/a4ferrei/scratch/' # instead of '$SCRATCH'
 
