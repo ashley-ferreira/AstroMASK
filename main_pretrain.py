@@ -9,7 +9,7 @@
 # BEiT: https://github.com/microsoft/unilm/tree/master/beit
 # --------------------------------------------------------
 
-use_slurm_temp_dir = True
+use_slurm_temp_dir = False
 
 # TRY TO MAKE THIS RELATIVE? FOR USE ON CANFAR AND CC
 canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/'
@@ -145,6 +145,7 @@ def main(args):
         # move files from $SCRATCH to $SLURM_TMPDIR
         dest = '$SLURM_TMPDIR'
 
+        # do transfer just once
         if num_gpus == 1 or torch.cuda.current_device() == device_ids[0]:
             initial_start_time = time.time()
             destination = shutil.copytree(src+cc_data_path, dest+cc_data_path, dirs_exist_ok=True)  
