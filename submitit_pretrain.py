@@ -15,8 +15,6 @@ from pathlib import Path
 import main_pretrain as trainer
 import submitit
 
-use_slurm_temp_dir = False
-
 def parse_args():
     trainer_parser = trainer.get_args_parser()
     parser = argparse.ArgumentParser("Submitit for MAE pretrain", parents=[trainer_parser])
@@ -30,11 +28,7 @@ def parse_args():
 
 
 def get_shared_folder() -> Path:
-    if use_slurm_temp_dir:
-        p = Path("$SLURM_TMPDIR/astro-mask/jobs/")
-    else:
-        p = Path("/home/a4ferrei/scratch/astro-mask/jobs/")
-
+    p = Path("/home/a4ferrei/scratch/astro-mask/jobs/")
     p.mkdir(exist_ok=True)
     return p
 

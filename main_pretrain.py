@@ -16,23 +16,15 @@ canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_fr
 canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
 canfar_output_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
 
-'''
-if use_slurm_temp_dir:
-    cc_dataloader_path = '$SLURM_TMPDIR/github/dark3d/src/models/training_framework/'
-    cc_data_path = '$SLURM_TMPDIR/data/spencer_cutout/valid2/'
-    cc_output_path = '$SLURM_TMPDIR/'
 
-else:
-    cc_dataloader_path = '~/scratch/github/dark3d/src/models/training_framework/'
-    cc_data_path = '~/scratch/data/spencer_cutout/valid2/'
-    cc_output_path = '~/scratch/'
-'''
 src = '/home/a4ferrei/scratch/' # instead of '$SCRATCH'
+
+# all of these will have some prefix of src or dest before them
 cc_dataloader_path = '/github/dark3d/src/models/training_framework/'
 cc_data_path = '/data/spencer_cutout/valid2/'
 cc_output_path = '/astro-mask/'
 
-n_cutouts = 5*10000 #500
+n_cutouts = 5*10000
 norm_method = 'min_max' 
 patch_size = 8
 
