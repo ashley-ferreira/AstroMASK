@@ -112,7 +112,7 @@ def get_args_parser():
     
     # sometimes this does not work for >0, error is: "ERROR: Unexpected bus error 
     # encountered in worker. This might be caused by insufficient shared memory (shm).""
-    parser.add_argument('--num_workers', default=4, type=int) 
+    parser.add_argument('--num_workers', default=6, type=int) # CPUs per GPU right now
 
     parser.add_argument('--pin_mem', action='store_true',
                         help='Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.')
@@ -144,8 +144,20 @@ def main(args):
         # move files from $SCRATCH to $SLURM_TMPDIR
         dest = '$SLURM_TMPDIR'
 
-        # do transfer just once
+        '''
+        # do transfer just once (this does not work!)
         if num_gpus == 1 or torch.cuda.current_device() == device_ids[0]:
+            initial_start_time = time.time()
+            destination = shutil.copytree(src+cc_data_path, dest+cc_data_path, dirs_exist_ok=True)  
+            transfer_time = time.time() - initial_start_time
+            print(destination)
+
+        else:
+            transfer_time = 0
+        '''
+
+        # do transfer just once (first check may be redundnat)
+        if num_gpus == 1 or misc.get_rank() == 0:
             initial_start_time = time.time()
             destination = shutil.copytree(src+cc_data_path, dest+cc_data_path, dirs_exist_ok=True)  
             transfer_time = time.time() - initial_start_time
@@ -156,6 +168,7 @@ def main(args):
 
         print('end of data transfer to $SLURM_TMPDIR')
         print(f'transfer time of {transfer_time} seconds')
+
     else:
         dest = src #'$SCRATCH'
         transfer_time = 0
