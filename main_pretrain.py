@@ -134,14 +134,26 @@ def get_args_parser():
 def main(args):
     print('main_pretrain.main')
 
+    # Set the number of GPUs you want to use
+    num_gpus = torch.cuda.device_count()
+
+    # Define the device IDs you want to use
+    device_ids = list(range(num_gpus))  # Using all available GPUs
+
     if use_slurm_temp_dir:
         print('start of data transfer to $SLURM_TMPDIR')
         # move files from $SCRATCH to $SLURM_TMPDIR
         dest = '$SLURM_TMPDIR'
-        initial_start_time = time.time()
-        destination = shutil.copytree(src+cc_data_path, dest+cc_data_path, dirs_exist_ok=True)  
-        transfer_time = time.time() - initial_start_time
-        print(destination)
+
+        if num_gpus == 1 or torch.cuda.current_device() == device_ids[0]:
+            initial_start_time = time.time()
+            destination = shutil.copytree(src+cc_data_path, dest+cc_data_path, dirs_exist_ok=True)  
+            transfer_time = time.time() - initial_start_time
+            print(destination)
+
+        else:
+            transfer_time = 0
+
         print('end of data transfer to $SLURM_TMPDIR')
         print(f'transfer time of {transfer_time} seconds')
     else:
