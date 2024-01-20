@@ -2,7 +2,7 @@
 
 #### Applying Self-Supervised Representation Learning to the Ultraviolet Near Infrared Optical Northern Survey
 
-**NOTE:** This repository is very much still a work in progress. I plan to upload my mid-project written report and I need to do one more big update to the code to reflect the software used to produce results in my written report. To do this I need to regain access to CANFAR and that should happen this week.
+**NOTE:** This repository is very much still a work in progress. 
 
 ### About 
 The Ultraviolet Near Infrared Optical Northern Survey (UNIONS) uses observations from three telescopes in Hawaii and aims to answer some of the most fundamental questions in astrophysics such as determining the properties of dark matter and dark energy, as well as the growth of structure in the Universe. However, being able to effectively search through and categorize the data in order to extract these insights can be cumbersome. This project hopes to exploit 
@@ -14,6 +14,9 @@ shown to be effective at performing similarity searches and take far fewer label
 [machine learning jamboree slides](https://docs.google.com/presentation/d/1yKvwjkmD0P0Yg99_3wGNmzTLRaY1v0lIrQrFEd7BDQQ/edit?usp=sharing) from November 2023
 
 [PHYS 437A mid-term presentation](https://docs.google.com/presentation/d/1SYtv5tDFlD92CpKsPnbQ_WaoMLi82DHT/edit?usp=sharing&ouid=111358555577518196339&rtpof=true&sd=true) from October 2023
+
+### Reports
+[PHYS 437A written report](https://drive.google.com/file/d/1YZd7P2o3J_OBjZ67idPWFj379PoHv0-J/view?usp=sharing) from December 2023
 
 ### Pre-requisites
 - read access to the [dark3d repo](https://github.com/astroai/dark3d)
