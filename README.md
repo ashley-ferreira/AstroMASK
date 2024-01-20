@@ -18,6 +18,8 @@ shown to be effective at performing similarity searches and take far fewer label
 ### Reports
 [PHYS 437A written report](https://drive.google.com/file/d/1YZd7P2o3J_OBjZ67idPWFj379PoHv0-J/view?usp=sharing) from December 2023
 
+One of the mistakes that exists in this report is that when generating representations, the mask ratio is still set at 0.5 but should be set to 0.0. Here a high-quality version of the [t-SNE](https://drive.google.com/file/d/1zGFpKQSaTEOJqi0d0gwpl44LopA7dRZE/view?usp=sharing) and [UMAP](https://drive.google.com/file/d/1zGFpKQSaTEOJqi0d0gwpl44LopA7dRZE/view?usp=sharing) with the proper mask ratio.
+
 ### Pre-requisites
 - read access to the [dark3d repo](https://github.com/astroai/dark3d)
 - a [Weights & Biases](https://docs.wandb.ai/quickstart#:~:text=Create%20an%20account%20and%20install,Python%203%20environment%20using%20pip%20.) account 
