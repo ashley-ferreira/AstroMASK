@@ -8,17 +8,21 @@
 The Ultraviolet Near Infrared Optical Northern Survey (UNIONS) uses observations from three telescopes in Hawaii and aims to answer some of the most fundamental questions in astrophysics such as determining the properties of dark matter and dark energy, as well as the growth of structure in the Universe. However, being able to effectively search through and categorize the data in order to extract these insights can be cumbersome. This project hopes to exploit 
 recent advances in a sub-field of Machine Learning (ML), called Self-Supervised Learning (SSL), including Masked Autoencoders (MAE) with Vision Transformer (ViT) 
 backbones to train a model to produce meaningful lower-dimensional representations of astronomy observations without the need for explicit labels. These models have 
-shown to be effective at performing similarity searches and take far fewer labels to fine-tune for downstream tasks such as strong lens detection. This report will cover the approach in more detail and touch on preliminary results of exploring these lower-dimensional representations.
+shown to be effective at performing similarity searches and take far fewer labels to fine-tune for downstream tasks such as strong lens detection. 
 
-### Presentations
+### Learn More
+#### Presentations
 [machine learning jamboree slides](https://docs.google.com/presentation/d/1yKvwjkmD0P0Yg99_3wGNmzTLRaY1v0lIrQrFEd7BDQQ/edit?usp=sharing) from November 2023
 
-[PHYS 437A mid-term presentation](https://docs.google.com/presentation/d/1SYtv5tDFlD92CpKsPnbQ_WaoMLi82DHT/edit?usp=sharing&ouid=111358555577518196339&rtpof=true&sd=true) from October 2023
+[PHYS 437A mid-term presentation slides](https://docs.google.com/presentation/d/1SYtv5tDFlD92CpKsPnbQ_WaoMLi82DHT/edit?usp=sharing&ouid=111358555577518196339&rtpof=true&sd=true) from October 2023
 
-### Reports
+#### Reports
 [PHYS 437A written report](https://drive.google.com/file/d/1YZd7P2o3J_OBjZ67idPWFj379PoHv0-J/view?usp=sharing) from December 2023
 
 One of the mistakes that exists in this report is that when generating representations, the mask ratio is still set at 0.5 but should be set to 0.0. Here a high-quality version of the [t-SNE](https://drive.google.com/file/d/1zGFpKQSaTEOJqi0d0gwpl44LopA7dRZE/view?usp=sharing) and [UMAP](https://drive.google.com/file/d/1zGFpKQSaTEOJqi0d0gwpl44LopA7dRZE/view?usp=sharing) with the proper mask ratio.
+
+#### Posters
+[CCUWiP poster](https://drive.google.com/file/d/1pCPDfRXtnYHVPDUMBkf0NiLSKzdy5JFE/view?usp=sharing) from January 2024
 
 ### Pre-requisites
 - read access to the [dark3d repo](https://github.com/astroai/dark3d)
