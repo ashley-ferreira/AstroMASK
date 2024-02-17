@@ -16,13 +16,15 @@ shown to be effective at performing similarity searches and take far fewer label
 
 [PHYS 437A mid-term presentation slides](https://docs.google.com/presentation/d/1SYtv5tDFlD92CpKsPnbQ_WaoMLi82DHT/edit?usp=sharing&ouid=111358555577518196339&rtpof=true&sd=true) from October 2023
 
+[UNIONS and Japanese Euclid Consortium Joint Meeting](https://docs.google.com/presentation/d/1cITGOypd4YZ2GOFq2LxdD_rx6z8i-QKnY6jiPRQVtzY/edit?usp=sharing) from January 2024, learn more [here](https://sites.google.com/view/unionsjec-joint-meeting/home)
+
+#### Posters
+[CCUWiP poster](https://drive.google.com/file/d/1pCPDfRXtnYHVPDUMBkf0NiLSKzdy5JFE/view?usp=sharing) from January 2024
+
 #### Reports
 [PHYS 437A written report](https://drive.google.com/file/d/1YZd7P2o3J_OBjZ67idPWFj379PoHv0-J/view?usp=sharing) from December 2023
 
 One of the mistakes that exists in this report is that when generating representations, the mask ratio is still set at 0.5 but should be set to 0.0. Here a high-quality version of the [t-SNE](https://drive.google.com/file/d/1zGFpKQSaTEOJqi0d0gwpl44LopA7dRZE/view?usp=sharing) and [UMAP](https://drive.google.com/file/d/1zGFpKQSaTEOJqi0d0gwpl44LopA7dRZE/view?usp=sharing) with the proper mask ratio.
-
-#### Posters
-[CCUWiP poster](https://drive.google.com/file/d/1pCPDfRXtnYHVPDUMBkf0NiLSKzdy5JFE/view?usp=sharing) from January 2024
 
 ### Pre-requisites
 - read access to the [dark3d repo](https://github.com/astroai/dark3d)
