@@ -17,6 +17,8 @@ import util.misc as misc
 import util.lr_sched as lr_sched
 import wandb
 import time
+from loss_func import uniformity_loss
+loss_method = 'square'
 
 def train_one_epoch(model: torch.nn.Module,
                     train_loader: Iterable, val_loader: Iterable, 
@@ -59,7 +61,18 @@ def train_one_epoch(model: torch.nn.Module,
 
         try: 
             with torch.cuda.amp.autocast():
-                loss, unnorm_loss = model(samples, mask_ratio=args.mask_ratio)
+                model_out = model(samples, mask_ratio=args.mask_ratio, loss_method=loss_method)
+
+                if loss_method == 'UMAE':
+                    loss_mae, _, _, cls_feats, outputs = model_out
+
+                    if args.reg == 'none':
+                        loss = torch.zeros_like(loss_mae)
+                    else:
+                        loss = uniformity_loss(cls_feats)
+
+                else: 
+                    loss, unnorm_loss = model_out
 
             loss_value = loss.item()
             unnorm_loss_value = unnorm_loss.item()

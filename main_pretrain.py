@@ -182,7 +182,7 @@ def main(args):
         'h5_directory': dest+cc_data_path
     }
     
-    # define fataset and dataloaders
+    # define dataset and dataloaders
     train_dataset = dataloaders.SpencerHDF5ReaderDataset(**kwargs_train)
     train_loader = DataLoader(dataset=train_dataset, shuffle=False, batch_size=args.batch_size, sampler=train_sampler, num_workers=args.num_workers)
     val_loader = DataLoader(dataset=train_dataset, shuffle=False, batch_size=args.batch_size, sampler=val_sampler, num_workers=args.num_workers)

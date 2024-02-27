@@ -173,6 +173,7 @@ class MaskedAutoencoderViT(nn.Module):
         x = self.norm(x)
 
         return x, mask, ids_restore
+    
 
     def forward_decoder(self, x, ids_restore):
         # embed tokens
@@ -245,20 +246,34 @@ class MaskedAutoencoderViT(nn.Module):
         
         return loss, unnormed_loss
 
-    def forward(self, imgs, mask_ratio=0.75, return_img=False):
+    def forward(self, imgs, mask_ratio=0.75, return_img=False, loss_method='square'):
         imgs, args = sc.normalize(imgs, self.norm_method) 
         self.norm_args = args 
 
         latent, mask, ids_restore = self.forward_encoder(imgs, mask_ratio)
         pred = self.forward_decoder(latent, ids_restore)  # [N, L, p*p*3]
         
-        loss, unnormed_loss = self.forward_loss(imgs, pred, mask) 
+        loss, unnormed_loss = self.forward_loss(imgs, pred, mask, loss_method=loss_method) 
 
-        if return_img:
-            return loss, unnormed_loss, pred, mask
+        if loss_method == 'UMAE':
+            # get cls feature
+            if self.global_pool:
+                cls_feats = latent[:, 1:, :].mean(dim=1)  # global pool without cls token
+                cls_feats = self.fc_norm(cls_feats)
+            else:
+                cls_feats = self.norm(latent)
+                cls_feats = cls_feats[:, 0]
+            outputs = self.fc(cls_feats.detach())
+
+            return loss, pred, mask, cls_feats, outputs
+    
         else:
-            return loss, unnormed_loss
 
+            if return_img:
+                return loss, unnormed_loss, pred, mask
+            else:
+                return loss, unnormed_loss
+        
 
 def mae_vit_base_patch16_dec512d8b(**kwargs):
     model = MaskedAutoencoderViT(
