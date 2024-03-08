@@ -46,7 +46,7 @@ from torch.utils.data import DataLoader, SubsetRandomSampler
 from torchvision.transforms import v2
 
 import timm 
-assert timm.__version__ == "0.3.2"  # version check
+#assert timm.__version__ == "0.3.2"  # version check
 import timm.optim.optim_factory as optim_factory
 
 import models_mae

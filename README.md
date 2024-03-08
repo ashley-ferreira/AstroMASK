@@ -37,7 +37,7 @@ enter password, then
 ```
 module load gcc/9.3.0 arrow/13.0.0 python/3.10
 ```
-
+- maybe rust commands and first time set up good to log too
 
 ##### CANFAR 
 1. Follow this link to [CANFAR Science Portal](https://www.canfar.net/science-portal/) and log on to your CADC account
