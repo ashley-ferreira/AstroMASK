@@ -133,8 +133,6 @@ def get_args_parser():
 
 def main(args):
     print('main_pretrain.main')
-    dataset = dataset_wrapper()
-    print('dataset set up')
     
     if use_slurm_temp_dir:
         dest = '$SLURM_TMPDIR'
@@ -217,6 +215,9 @@ def main(args):
                 "train_val_split": val_frac,
                 "use_slurm_temp_dir": use_slurm_temp_dir,
             })
+    
+    dataset = dataset_wrapper()
+    print('dataset set up')
     
     print(f"Start training for {args.iters} iters")
     

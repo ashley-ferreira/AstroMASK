@@ -90,7 +90,7 @@ def train_one_iter(model: torch.nn.Module,
 
         # we use a per iteration (instead of per epoch) lr scheduler
         if i_train % accum_iter == 0:
-            lr_sched.adjust_learning_rate(optimizer, i_train / total_batches + iter, args)
+            lr_sched.adjust_learning_rate(optimizer, i_train / len(train_idx) + iter, args)
         
         real_batch_size = len(samples)
         samples = samples.to(device, non_blocking=True)
@@ -124,7 +124,7 @@ def train_one_iter(model: torch.nn.Module,
                         update_grad=(i_train + 1) % accum_iter == 0)
             if (i_train + 1) % accum_iter == 0:
                 optimizer.zero_grad 
-                print(header + ' Batch [{}/{}]'.format(i_train, total_batches) + ' Train Loss: {:.12f}'.format(loss))
+                print(header + ' Batch [{}/{}]'.format(i_train, len(train_idx)) + ' Train Loss: {:.12f}'.format(loss))
 
             torch.cuda.synchronize()
 
