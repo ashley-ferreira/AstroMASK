@@ -25,7 +25,7 @@ cc_data_path = '/data/spencer_cutout/valid2/'
 def parse_args():
     trainer_parser = trainer.get_args_parser()
     parser = argparse.ArgumentParser("Submitit for MAE pretrain", parents=[trainer_parser])
-    parser.add_argument("--ngpus", default=4, type=int, help="Number of gpus to request on each node") #4
+    parser.add_argument("--ngpus", default=2, type=int, help="Number of gpus to request on each node") #4
     parser.add_argument("--nodes", default=1, type=int, help="Number of nodes to request")
     parser.add_argument("--timeout", default=20, type=int, help="Duration of the job (minutes)") 
     parser.add_argument("--job_dir", default="", type=str, help="Job dir. Leave empty for automatic.")

@@ -20,18 +20,24 @@ import time
 from loss_func import uniformity_loss
 loss_method = 'square'
 
-def train_one_epoch(model: torch.nn.Module,
-                    train_loader: Iterable, val_loader: Iterable, 
+src = '/home/a4ferrei/scratch/'
+cc_dataloader_path = '/github/TileSlicer/'
+sys.path.insert(0, src+cc_dataloader_path)
+from dataloader import run_training_step
+
+def train_one_iter(model: torch.nn.Module,
+                    train_transforms, dataset, 
                     optimizer: torch.optim.Optimizer,
-                    device: torch.device, epoch: int, loss_scaler,
-                    log_writer=None, args=None, norm_method=None):
+                    device: torch.device, iter: int, loss_scaler,
+                    log_writer=None, args=None, norm_method=None,
+                    iterations=100, batch_size=64, val_frac=0.1):
     
     start_time = time.time()
 
     model.train(True)
     metric_logger = misc.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', misc.SmoothedValue(window_size=1, fmt='{value:.6f}'))
-    header = 'Epoch: [{}]'.format(epoch)
+    header = 'Iter: [{}]'.format(iter)
 
     accum_iter = args.accum_iter
     optimizer.zero_grad()
@@ -40,12 +46,42 @@ def train_one_epoch(model: torch.nn.Module,
         print('log_dir: {}'.format(log_writer.log_dir))
 
     train_loss, train_unnorm_loss = [], []
-    total_batches = len(train_loader) 
+
+    cutouts, catalog, tile = dataset.__next__()
+    run_training_step((cutouts, catalog, tile))
+    del catalog
+    del tile
+    n_cutouts = len(cutouts)
+    print(type(cutouts))
+    print(cutouts.shape)
+    print(f'data loaded, {n_cutouts} cutouts extracted')
+
+    # transform it (better place for this?)
+    cutouts = train_transforms(cutouts)
+    print('data transformed')
+
+    # split up the dataset in dataset_path into train and validation
+    dataset_indices = list(range(n_cutouts))
+    np.random.shuffle(dataset_indices)
+    val_split_index = int(np.floor(val_frac * n_cutouts))
+    train_idx, val_idx = dataset_indices[val_split_index:], dataset_indices[:val_split_index]
+
+    # random shuffle (with a seed)
+    # get validation set
+    # chunk it up
+    train_cutouts = cutouts[train_idx]
+    val_cutouts = cutouts[val_idx]
+
+    # run it through
+    # log each one but only overall later
+    # ... how to do this?
     
-    for i_train, samples in enumerate(train_loader):       
-        #print(type(samples))
-        #print(samples.dtype)
-        #print(samples[0])
+    old_i_train = 0
+    for i_train in len(train_idx)%batch_size:    
+        samples = train_cutouts[old_i_train:i_train+1]
+        old_i_train = i_train
+        print(type(samples))
+        print(samples.dtype)
 
         # we want all to be in float32 or else we get the following error:
         # Input type (double) and bias type (c10::Half) should be the same
@@ -54,7 +90,7 @@ def train_one_epoch(model: torch.nn.Module,
 
         # we use a per iteration (instead of per epoch) lr scheduler
         if i_train % accum_iter == 0:
-            lr_sched.adjust_learning_rate(optimizer, i_train / total_batches + epoch, args)
+            lr_sched.adjust_learning_rate(optimizer, i_train / total_batches + iter, args)
         
         real_batch_size = len(samples)
         samples = samples.to(device, non_blocking=True)
@@ -102,7 +138,7 @@ def train_one_epoch(model: torch.nn.Module,
                 """ We use epoch_1000x as the x-axis in tensorboard.
                 This calibrates different curves when batch size changes.
                 """
-                epoch_1000x = int((i_train / len(train_loader) + epoch) * 1000)
+                epoch_1000x = int((i_train / len(train_idx) + iter) * 1000)
                 log_writer.add_scalar('train_loss', loss_value_reduce, epoch_1000x)
                 log_writer.add_scalar('lr', lr, epoch_1000x)
                 
@@ -118,8 +154,12 @@ def train_one_epoch(model: torch.nn.Module,
     
     model.eval()
     val_loss, val_unnorm_loss = [], []
-    total_batches = len(val_loader)
-    for i_val, samples in enumerate(val_loader):
+
+    old_i_val = 0
+    for i_val in len(val_idx)%batch_size:    
+        samples = val_cutouts[old_i_val:i_val+1]
+        old_i_val = i_val
+
         samples = samples.to(device, non_blocking=True)
         samples = samples.float()
        
@@ -137,7 +177,7 @@ def train_one_epoch(model: torch.nn.Module,
                 loss /= (real_batch_size * accum_iter)
                 unnorm_loss /= (real_batch_size * accum_iter)
                 
-                print(header + ' Batch [{}/{}]'.format(i_val, total_batches) + ' Val Loss: {:.12f}'.format(loss)) 
+                print(header + ' Batch [{}/{}]'.format(i_val, len(val_idx)) + ' Val Loss: {:.12f}'.format(loss)) 
                 loss_value_validation = misc.all_reduce_mean(loss)
                 
             val_loss.append(loss_value)
@@ -161,7 +201,7 @@ def train_one_epoch(model: torch.nn.Module,
 
     wandb.log({
                 "learning_rate": lr,
-                "epochs": epoch,
+                "iter": iter,
                 "val_loss": val_loss_avg, 
                 "train_loss": train_loss_avg,
                 "train_unnorm_loss": train_unnorm_loss_avg, 

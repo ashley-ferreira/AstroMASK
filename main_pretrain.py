@@ -12,14 +12,14 @@
 use_slurm_temp_dir = True
 
 # TRY TO MAKE THIS RELATIVE? FOR USE ON CANFAR AND CC
-canfar_dataloader_path = '/arc/home/ashley/SSL/git/dark3d/src/models/training_framework/'
+canfar_dataloader_path = '/arc/home/ashley/SSL/git/TileSlicer/'
 canfar_data_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
 canfar_output_path = '/arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/10k_per_h5/'
 
 src = '/home/a4ferrei/scratch/' # instead of '$SCRATCH'
 
 # all of these will have some prefix of src or dest before them
-cc_dataloader_path = '/github/dark3d/src/models/training_framework/'
+cc_dataloader_path = '/github/TileSlicer/'
 cc_data_path = '/data/spencer_cutout/valid2/'
 cc_output_path = '/astro-mask/'
 
@@ -38,12 +38,14 @@ date_time = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 
 import sys
 sys.path.insert(0, src+cc_dataloader_path)
-import dataloaders.dataloaders
+from dataloader import dataset_wrapper, run_training_step
+dataset = dataset_wrapper()
 
 import wandb
 import torch
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader, SubsetRandomSampler
+from torchvision.transforms import v2
 
 import timm 
 assert timm.__version__ == "0.3.2"  # version check
@@ -52,7 +54,7 @@ import timm.optim.optim_factory as optim_factory
 import models_mae
 import util.misc as misc
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
-from engine_pretrain import train_one_epoch
+from engine_pretrain import train_one_iter
 
 import shutil 
 import time
@@ -61,7 +63,8 @@ def get_args_parser():
     parser = argparse.ArgumentParser('MAE pre-training', add_help=False)
     parser.add_argument('--batch_size', default=64, type=int, 
                         help='Batch size per GPU (effective batch size is batch_size * accum_iter * # gpus')
-    parser.add_argument('--epochs', default=10, type=int)
+    parser.add_argument('--iters', default=10000, type=int, 
+                        help='How many effective batch sizes to let model train on (no repeats)')
     parser.add_argument('--accum_iter', default=1, type=int,
                         help='Accumulate gradient iterations (for increasing the effective batch size under memory constraints)')
 
@@ -90,8 +93,8 @@ def get_args_parser():
     parser.add_argument('--min_lr', type=float, default=0., metavar='LR',
                         help='lower lr bound for cyclic schedulers that hit 0')
 
-    parser.add_argument('--warmup_epochs', type=int, default=2, metavar='N',
-                        help='epochs to warmup LR')
+    parser.add_argument('--warmup_iters', type=int, default=2, metavar='N',
+                        help='iters to warmup LR')
 
     # Dataset parameters
     parser.add_argument('--data_path', default=f'{cc_data_path}', type=str,
@@ -107,8 +110,8 @@ def get_args_parser():
     parser.add_argument('--resume', default='',
                         help='resume from checkpoint') 
 
-    parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
-                        help='start epoch')
+    parser.add_argument('--start_iter', default=0, type=int, metavar='N',
+                        help='start iter')
     
     # sometimes this does not work for >0, error is: "ERROR: Unexpected bus error 
     # encountered in worker. This might be caused by insufficient shared memory (shm).""
@@ -154,38 +157,12 @@ def main(args):
     np.random.seed(seed)
 
     cudnn.benchmark = True
+    val_frac = 0.1
 
-    # currently doing my own center-crop and normalization
-    #train_transforms = transforms.Compose([
-            #transforms.CenterCrop(args.input_size), 
-            #prep_data.Normalize(method='None'), <-- only add once we have settled on one
-            #transforms.RandomResizedCrop(args.input_size, scale=(0.2, 1.0), interpolation=3),  # 3 is bicubic
-            #transforms.RandomHorizontalFlip(),
-           #transforms.ToTensor(),]) 
-
-    # split up the dataset in dataset_path into train and validation
-    dataset_indices = list(range(n_cutouts))
-    np.random.shuffle(dataset_indices)
-    frac = 0.1 # decrease when we have more data
-    val_split_index = int(np.floor(frac * n_cutouts))
-    train_idx, val_idx = dataset_indices[val_split_index:], dataset_indices[:val_split_index]
-
-    train_sampler = SubsetRandomSampler(train_idx)
-    val_sampler = SubsetRandomSampler(val_idx) 
-    
-    # define keywords for dataset
-    kwargs_train = {
-        'n_cutouts': n_cutouts,
-        'bands': ['u', 'g', 'r', 'i', 'z'],
-        'cutout_size': args.input_size,
-        'cutouts_per_file': 10000,
-        'h5_directory': dest+cc_data_path
-    }
-    
-    # define dataset and dataloaders
-    train_dataset = dataloaders.SpencerHDF5ReaderDataset(**kwargs_train)
-    train_loader = DataLoader(dataset=train_dataset, shuffle=False, batch_size=args.batch_size, sampler=train_sampler, num_workers=args.num_workers)
-    val_loader = DataLoader(dataset=train_dataset, shuffle=False, batch_size=args.batch_size, sampler=val_sampler, num_workers=args.num_workers)
+    train_transforms = v2.Compose([
+        v2.RandomResizedCrop(args.input_size), 
+        v2.ToTensor()
+        ]) 
 
     print('workers:', args.num_workers)
     log_writer = None
@@ -237,25 +214,26 @@ def main(args):
                 "data_path": src+cc_data_path,
                 "norm_method": norm_method,
                 "patch_size": patch_size,
-                "train_val_split": frac,
+                "train_val_split": val_frac,
                 "use_slurm_temp_dir": use_slurm_temp_dir,
             })
     
-    print(f"Start training for {args.epochs} epochs")
+    print(f"Start training for {args.iters} iters")
     
     start_time = time.time()
-    for epoch in range(args.start_epoch, args.epochs):
+    for i in range(args.start_iter, args.iters):
         
-        train_stats = train_one_epoch(model, train_loader, val_loader, optimizer, 
-                                      device, epoch, loss_scaler, log_writer=log_writer, 
-                                      args=args, norm_method=norm_method)
+        train_stats = train_one_iter(model, train_transforms, dataset, optimizer, 
+                                      device, i, loss_scaler, log_writer=log_writer, 
+                                      args=args, norm_method=norm_method, iterations=args.iters, 
+                                      batch_size=eff_batch_size, val_frac=val_frac)
 
         if args.output_dir:
             misc.save_model(args=args, model=model, model_without_ddp=model_without_ddp, 
-                            optimizer=optimizer,loss_scaler=loss_scaler, epoch=epoch)
+                            optimizer=optimizer,loss_scaler=loss_scaler, epoch=iter)
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
-                        'epoch': epoch,}
+                        'iter': i,}
 
         if args.output_dir and misc.is_main_process():
             if log_writer is not None:
