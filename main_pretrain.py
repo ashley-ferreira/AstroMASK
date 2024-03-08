@@ -9,7 +9,7 @@
 # BEiT: https://github.com/microsoft/unilm/tree/master/beit
 # --------------------------------------------------------
 
-use_slurm_temp_dir = True
+use_slurm_temp_dir = False
 
 # TRY TO MAKE THIS RELATIVE? FOR USE ON CANFAR AND CC
 canfar_dataloader_path = '/arc/home/ashley/SSL/git/TileSlicer/'
