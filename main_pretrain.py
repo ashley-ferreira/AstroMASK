@@ -134,7 +134,8 @@ def get_args_parser():
 def main(args):
     print('main_pretrain.main')
     dataset = dataset_wrapper()
-
+    print('dataset set up')
+    
     if use_slurm_temp_dir:
         dest = '$SLURM_TMPDIR'
     else:
