@@ -23,7 +23,6 @@ cc_dataloader_path = '/github/TileSlicer/'
 cc_data_path = '/data/spencer_cutout/valid2/'
 cc_output_path = '/astro-mask/'
 
-n_cutouts = 5*10000
 norm_method = 'min_max' 
 patch_size = 8
 
@@ -39,7 +38,6 @@ date_time = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 import sys
 sys.path.insert(0, src+cc_dataloader_path)
 from dataloader import dataset_wrapper, run_training_step
-dataset = dataset_wrapper()
 
 import wandb
 import torch
@@ -135,6 +133,7 @@ def get_args_parser():
 
 def main(args):
     print('main_pretrain.main')
+    dataset = dataset_wrapper()
 
     if use_slurm_temp_dir:
         dest = '$SLURM_TMPDIR'

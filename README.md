@@ -25,6 +25,21 @@ shown to be effective at performing similarity searches and take far fewer label
 ```
 
 ### Quick Start
+
+##### Cedar (will flesh out more)
+1. Get set up on cedar
+...
+2. Activate mae_env and also do
+```
+cadc-get-cert -u YOUR_USERNAME
+```
+enter password, then
+```
+module load gcc/9.3.0 arrow/13.0.0 python/3.10
+```
+
+
+##### CANFAR 
 1. Follow this link to [CANFAR Science Portal](https://www.canfar.net/science-portal/) and log on to your CADC account
 2. Launch a notebook with container image "skaha/astroml-notebook:latest"
 3. Enter the following in their terminal with your CADC username in the place of YOUR_USERNAME
@@ -51,8 +66,6 @@ which saves checkpoints in
 /arc/projects/unions/ssl/data/processed/unions-cutouts/ugriz_lsb/output_dir/DATETIME
 ```
 where DATETIME is the time at which the code began running in UTC.
-
-8. To analyze the outputs of this model, specifically the image reconstructions and the representations through UMAPs, t-SNEs, and similarity search, then run the notebooks found in `mae/demo`. 
 
 ### Acknowledgements
 Many others have contributed to this effort including my supervisors Sebastien Fabbro and Mike Hudson, as well as Spencer Bialek, Nat Comeau, Nick Heesters, and Leonardo Ferreira. 
