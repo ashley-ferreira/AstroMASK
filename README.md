@@ -25,7 +25,7 @@ shown to be effective at performing similarity searches and take far fewer label
 ```
 
 ### Quick Start
-
+- add wandb login to both
 ##### Cedar (will flesh out more)
 1. Get set up on cedar
 ...

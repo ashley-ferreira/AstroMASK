@@ -46,8 +46,14 @@ from torch.utils.data import DataLoader, SubsetRandomSampler
 from torchvision.transforms import v2
 
 import timm 
-#assert timm.__version__ == "0.3.2"  # version check
+assert timm.__version__ == "0.3.2"  # you need to go into timm and change a few things, 0.9.16
 import timm.optim.optim_factory as optim_factory
+'''
+You should replace
+from torch._six import container_abcs 
+with
+import container.abc as container_abcs 
+'''
 
 import models_mae
 import util.misc as misc
@@ -193,8 +199,10 @@ def main(args):
     optimizer = torch.optim.AdamW(param_groups, lr=args.lr, betas=(0.9, 0.95))
     print(optimizer)
     loss_scaler = NativeScaler()
+    print('loss scaler')
 
     misc.load_model(args=args, model_without_ddp=model_without_ddp, optimizer=optimizer, loss_scaler=loss_scaler)
+    print('model loaded')
 
     # Set the project where this run will be logged
     run = wandb.init(
@@ -215,10 +223,11 @@ def main(args):
                 "train_val_split": val_frac,
                 "use_slurm_temp_dir": use_slurm_temp_dir,
             })
+    print('wandb')
     
     dataset = dataset_wrapper()
     print('dataset set up')
-    
+
     print(f"Start training for {args.iters} iters")
     
     start_time = time.time()
