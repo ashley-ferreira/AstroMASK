@@ -18,7 +18,7 @@ import submitit
 import shutil 
 import time
 
-use_slurm_temp_dir = True
+use_slurm_temp_dir = False
 src = '/home/a4ferrei/scratch/' 
 cc_data_path = '/data/spencer_cutout/valid2/'
 
