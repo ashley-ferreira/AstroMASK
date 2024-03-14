@@ -233,7 +233,7 @@ def main(args):
     start_time = time.time()
     for i in range(args.start_iter, args.iters):
         
-        train_stats = train_one_iter(model, train_transforms, dataset, optimizer, 
+        train_stats = train_one_iter(model, i, train_transforms, dataset, optimizer, 
                                       device, i, loss_scaler, log_writer=log_writer, 
                                       args=args, norm_method=norm_method, iterations=args.iters, 
                                       batch_size=eff_batch_size, val_frac=val_frac)

@@ -18,6 +18,7 @@ import util.lr_sched as lr_sched
 import wandb
 import time
 from loss_func import uniformity_loss
+import util.cutout_scaling as sc
 loss_method = 'square'
 
 src = '/home/a4ferrei/scratch/'
@@ -25,7 +26,7 @@ cc_dataloader_path = '/github/TileSlicer/'
 sys.path.insert(0, src+cc_dataloader_path)
 from dataloader import run_training_step
 
-def train_one_iter(model: torch.nn.Module,
+def train_one_iter(model: torch.nn.Module, iter_num,
                     train_transforms, dataset, 
                     optimizer: torch.optim.Optimizer,
                     device: torch.device, iter: int, loss_scaler,
@@ -37,7 +38,7 @@ def train_one_iter(model: torch.nn.Module,
     model.train(True)
     metric_logger = misc.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', misc.SmoothedValue(window_size=1, fmt='{value:.6f}'))
-    header = 'Iter: [{}]'.format(iter)
+    header = 'Iter: [{}]'.format(iter_num)
 
     accum_iter = args.accum_iter
     optimizer.zero_grad()
@@ -51,14 +52,24 @@ def train_one_iter(model: torch.nn.Module,
     run_training_step((cutouts, catalog, tile))
     del catalog
     del tile
-    n_cutouts = len(cutouts)
+    n_cutouts, channels, pix_len1, pix_len2 = cutouts.shape
     print(type(cutouts))
     print(cutouts.shape)
     print(f'data loaded, {n_cutouts} cutouts extracted')
 
-    # transform it (better place for this?)
-    cutouts = train_transforms(cutouts)
+    # TEMP
+    def normalize(cutout):
+        min_overall = np.min(cutout)
+        max_overall = np.max(cutout)
+        normed_cutout = (cutout - min_overall) / (max_overall - min_overall)
+        return normed_cutout
+    cutouts = train_transforms(torch.from_numpy(normalize(cutouts)))
+    cutouts = torch.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
+    norm_method = None # TEMP
     print('data transformed')
+
+    # TEMP
+    val_frac = 0.2
 
     # split up the dataset in dataset_path into train and validation
     dataset_indices = list(range(n_cutouts))
@@ -66,18 +77,15 @@ def train_one_iter(model: torch.nn.Module,
     val_split_index = int(np.floor(val_frac * n_cutouts))
     train_idx, val_idx = dataset_indices[val_split_index:], dataset_indices[:val_split_index]
 
-    # random shuffle (with a seed)
-    # get validation set
-    # chunk it up
+    print(type(cutouts), type(train_idx), type(val_idx))
     train_cutouts = cutouts[train_idx]
-    val_cutouts = cutouts[val_idx]
-
-    # run it through
-    # log each one but only overall later
-    # ... how to do this?
-    
+    print(type(cutouts))
+    print(len(train_idx), len(val_idx))
+    val_cutouts = cutouts[val_idx] # why does it work for train but not val? --> maybe it is just one value    
     old_i_train = 0
-    for i_train in len(train_idx)%batch_size:    
+
+    print('train len', len(train_idx))
+    for i_train in range(len(train_idx)%batch_size):    
         samples = train_cutouts[old_i_train:i_train+1]
         old_i_train = i_train
         print(type(samples))
@@ -90,7 +98,8 @@ def train_one_iter(model: torch.nn.Module,
 
         # we use a per iteration (instead of per epoch) lr scheduler
         if i_train % accum_iter == 0:
-            lr_sched.adjust_learning_rate(optimizer, i_train / len(train_idx) + iter, args)
+            lr_sched.adjust_learning_rate(optimizer, iter_num, args)
+            #lr_sched.adjust_learning_rate(optimizer, i_train / len(train_idx) + iter, args)
         
         real_batch_size = len(samples)
         samples = samples.to(device, non_blocking=True)
@@ -124,7 +133,7 @@ def train_one_iter(model: torch.nn.Module,
                         update_grad=(i_train + 1) % accum_iter == 0)
             if (i_train + 1) % accum_iter == 0:
                 optimizer.zero_grad 
-                print(header + ' Batch [{}/{}]'.format(i_train, len(train_idx)) + ' Train Loss: {:.12f}'.format(loss))
+                print(header + ' Batch [{}/{}]'.format(i_train, len(train_idx)%batch_size) + ' Train Loss: {:.12f}'.format(loss))
 
             torch.cuda.synchronize()
 
@@ -155,8 +164,10 @@ def train_one_iter(model: torch.nn.Module,
     model.eval()
     val_loss, val_unnorm_loss = [], []
 
+    # should validation set be center cropped?
     old_i_val = 0
-    for i_val in len(val_idx)%batch_size:    
+    print('val_len', len(val_idx))
+    for i_val in range(len(val_idx)%batch_size):    
         samples = val_cutouts[old_i_val:i_val+1]
         old_i_val = i_val
 
@@ -177,7 +188,7 @@ def train_one_iter(model: torch.nn.Module,
                 loss /= (real_batch_size * accum_iter)
                 unnorm_loss /= (real_batch_size * accum_iter)
                 
-                print(header + ' Batch [{}/{}]'.format(i_val, len(val_idx)) + ' Val Loss: {:.12f}'.format(loss)) 
+                print(header + ' Batch [{}/{}]'.format(i_val, len(val_idx)%batch_size) + ' Val Loss: {:.12f}'.format(loss)) 
                 loss_value_validation = misc.all_reduce_mean(loss)
                 
             val_loss.append(loss_value)
@@ -201,7 +212,7 @@ def train_one_iter(model: torch.nn.Module,
 
     wandb.log({
                 "learning_rate": lr,
-                "iter": iter,
+                "iter": iter_num,
                 "val_loss": val_loss_avg, 
                 "train_loss": train_loss_avg,
                 "train_unnorm_loss": train_unnorm_loss_avg, 
