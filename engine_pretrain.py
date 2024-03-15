@@ -53,8 +53,6 @@ def train_one_iter(model: torch.nn.Module, iter_num,
     del catalog
     del tile
     n_cutouts, channels, pix_len1, pix_len2 = cutouts.shape
-    print(type(cutouts))
-    print(cutouts.shape)
     print(f'data loaded, {n_cutouts} cutouts extracted')
 
     # TEMP
@@ -64,7 +62,7 @@ def train_one_iter(model: torch.nn.Module, iter_num,
         normed_cutout = (cutout - min_overall) / (max_overall - min_overall)
         return normed_cutout
     cutouts = train_transforms(torch.from_numpy(normalize(cutouts)))
-    cutouts = torch.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
+    cutouts = torch.nan_to_num(cutouts, nan=0.0, posinf=0.0, neginf=0.0)
     norm_method = None # TEMP
     print('data transformed')
 
@@ -76,16 +74,13 @@ def train_one_iter(model: torch.nn.Module, iter_num,
     np.random.shuffle(dataset_indices)
     val_split_index = int(np.floor(val_frac * n_cutouts))
     train_idx, val_idx = dataset_indices[val_split_index:], dataset_indices[:val_split_index]
-
-    print(type(cutouts), type(train_idx), type(val_idx))
     train_cutouts = cutouts[train_idx]
-    print(type(cutouts))
-    print(len(train_idx), len(val_idx))
-    val_cutouts = cutouts[val_idx] # why does it work for train but not val? --> maybe it is just one value    
+    val_cutouts = cutouts[val_idx]
+    
+    
     old_i_train = 0
 
-    print('train len', len(train_idx))
-    for i_train in range(len(train_idx)%batch_size):    
+    for i_train in range(len(train_idx)//batch_size):    
         samples = train_cutouts[old_i_train:i_train+1]
         old_i_train = i_train
         print(type(samples))
@@ -133,7 +128,7 @@ def train_one_iter(model: torch.nn.Module, iter_num,
                         update_grad=(i_train + 1) % accum_iter == 0)
             if (i_train + 1) % accum_iter == 0:
                 optimizer.zero_grad 
-                print(header + ' Batch [{}/{}]'.format(i_train, len(train_idx)%batch_size) + ' Train Loss: {:.12f}'.format(loss))
+                print(header + ' Batch [{}/{}]'.format(i_train+1, len(train_idx)//batch_size) + ' Train Loss: {:.12f}'.format(loss))
 
             torch.cuda.synchronize()
 
@@ -166,8 +161,7 @@ def train_one_iter(model: torch.nn.Module, iter_num,
 
     # should validation set be center cropped?
     old_i_val = 0
-    print('val_len', len(val_idx))
-    for i_val in range(len(val_idx)%batch_size):    
+    for i_val in range(len(val_idx)//batch_size):    
         samples = val_cutouts[old_i_val:i_val+1]
         old_i_val = i_val
 
@@ -188,7 +182,7 @@ def train_one_iter(model: torch.nn.Module, iter_num,
                 loss /= (real_batch_size * accum_iter)
                 unnorm_loss /= (real_batch_size * accum_iter)
                 
-                print(header + ' Batch [{}/{}]'.format(i_val, len(val_idx)%batch_size) + ' Val Loss: {:.12f}'.format(loss)) 
+                print(header + ' Batch [{}/{}]'.format(i_val+1, len(val_idx)//batch_size) + ' Val Loss: {:.12f}'.format(loss)) 
                 loss_value_validation = misc.all_reduce_mean(loss)
                 
             val_loss.append(loss_value)
