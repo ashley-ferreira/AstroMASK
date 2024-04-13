@@ -18,6 +18,8 @@ shown to be effective at performing similarity searches and take far fewer label
 
 [UNIONS and Japanese Euclid Consortium Joint Meeting](https://docs.google.com/presentation/d/1cITGOypd4YZ2GOFq2LxdD_rx6z8i-QKnY6jiPRQVtzY/edit?usp=sharing) from January 2024, learn more [here](https://sites.google.com/view/unionsjec-joint-meeting/home)
 
+[PHYS 437B mid-term presentation slides](https://docs.google.com/presentation/d/1__NREK7IAhchh6y30NEKQ9kXiZOIhZqaIKavWUL4qC0/edit?usp=sharing) from February 2024
+
 #### Posters
 [CCUWiP poster](https://drive.google.com/file/d/1pCPDfRXtnYHVPDUMBkf0NiLSKzdy5JFE/view?usp=sharing) from January 2024
 
